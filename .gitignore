@@ -5,3 +5,10 @@ nvim
 
 spell/
 lazy-lock.json
+lazyvim.json
+lua/plugins/all-themes.lua
+lua/plugins/disable-news-alert.lua
+lua/plugins/omarchy-theme-hotreload.lua
+lua/plugins/snacks-animated-scrolling-off.lua
+lua/plugins/theme.lua
+plugin/after/transparency.lua
