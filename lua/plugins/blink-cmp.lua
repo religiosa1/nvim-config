@@ -1,6 +1,6 @@
 return {
   {
-    "Saghen/blink.cmp",
+    "saghen/blink.cmp",
     opts = {
       keymap = { preset = "super-tab" },
       -- maybe I want to disable ghost_text as well, research later:
