@@ -11,7 +11,7 @@ return {
             -- https://prettier.io/docs/cli/#--config-precedence
             "--config-precedence=prefer-file",
             "--use-tabs=true",
-            "--print-width=100",
+            "--print-width=120",
             "--trailing-comma=all",
           },
         },
