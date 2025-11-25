@@ -5,7 +5,7 @@ return {
     "stevearc/conform.nvim",
     opts = {
       formatters = {
-        --
+        -- Don't forrget to :LazyExtras prettier
         prettier = {
           prepend_args = {
             -- https://prettier.io/docs/cli/#--config-precedence
