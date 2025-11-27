@@ -26,6 +26,7 @@ vim.keymap.set("n", "<leader>uR", function()
   end
 end, { desc = "Toggle ruler guides" })
 
+vim.keymap.set("n", "<leader>bn", "<cmd>enew<CR>", { desc = "Open new buffer" })
 vim.keymap.set("v", "<leader>p", "pgvy", { desc = "Paste w/o clipboard" })
 
 -- scroll and center
