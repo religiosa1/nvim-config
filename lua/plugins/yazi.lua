@@ -30,7 +30,8 @@ return {
     opts = {
       open_for_directories = false,
       keymaps = {
-        show_help = "<f1>",
+        -- leaving f1 for yazi help, that makes f2 for the plugin help
+        show_help = "<f2>",
       },
     },
   },
