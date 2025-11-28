@@ -1,6 +1,6 @@
 return {
   "johmsalas/text-case.nvim",
-  enabled = false,
+  enabled = true,
   lazy = false,
   config = true,
   cmd = {
