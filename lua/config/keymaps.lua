@@ -29,9 +29,11 @@ end, { desc = "Toggle ruler guides" })
 vim.keymap.set("n", "<leader>bn", "<cmd>enew<CR>", { desc = "Open new buffer" })
 vim.keymap.set("v", "<leader>p", "pgvy", { desc = "Paste w/o clipboard" })
 
+vim.keymap.set("t", "<C-Esc>", "<C-\\><C-n>", { remap = true, desc = "Exit terminal mode" })
+
 -- scroll and center
-vim.keymap.set("n", "<C-u>", "<C-u>zz", { remap = true })
-vim.keymap.set("n", "<C-d>", "<C-d>zz", { remap = true })
+-- vim.keymap.set("n", "<C-u>", "<C-u>zz", { remap = true })
+-- vim.keymap.set("n", "<C-d>", "<C-d>zz", { remap = true })
 
 -- compatibility with vim-surround for mini.surrounding plugin
 vim.keymap.set("n", "ys", "gsa", { remap = true, desc = "Add surrounding" })
