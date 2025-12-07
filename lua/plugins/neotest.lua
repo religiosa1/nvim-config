@@ -2,13 +2,19 @@ return {
   { "nvim-neotest/neotest-plenary" },
   {
     "nvim-neotest/neotest",
-    dependencies = { "nvim-neotest/neotest-jest" },
+    dependencies = {
+      "nvim-neotest/neotest-jest",
+      -- "Nelfimov/neotest-node-test-runner",
+      "marilari88/neotest-vitest",
+    },
     opts = {
       discovery = {
         enabled = false,
       },
       adapters = {
         "neotest-plenary",
+        -- ["neotest-node-test-runner"] = {},
+        ["neotest-vitest"] = {},
         -- wip setup for work-related jest crap
         -- other available options: https://github.com/nvim-neotest/neotest-jest
         ["neotest-jest"] = {
