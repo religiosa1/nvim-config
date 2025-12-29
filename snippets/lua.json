@@ -1,0 +1,7 @@
+{
+	"Throw Not Implemented Error": {
+		"prefix": "td",
+		"description": "Throw not implemented error",
+		"body": ["error(\"Not implemented\");"]
+	}
+}
