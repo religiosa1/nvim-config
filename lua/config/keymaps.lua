@@ -29,6 +29,7 @@ end, { desc = "Toggle ruler guides" })
 vim.keymap.set("n", "<leader>bn", "<cmd>enew<CR>", { desc = "Open new buffer" })
 vim.keymap.set("v", "<leader>p", "pgvy", { desc = "Paste w/o clipboard" })
 vim.keymap.set({ "v" }, "x", '"_d', { desc = "Delete to blackhole" })
+vim.keymap.set({ "n", "o", "x" }, "<LocalLeader>x", '"_x', { desc = "X to blackhole" })
 vim.keymap.set({ "n", "v", "o", "x" }, "<LocalLeader>d", '"_d', { desc = "Delete to blackhole" })
 vim.keymap.set({ "n", "v", "o", "x" }, "<LocalLeader>d", '"_d', { desc = "Delete to blackhole" })
 
