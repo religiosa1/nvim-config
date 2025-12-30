@@ -21,7 +21,7 @@ return {
         desc = "Open the file manager in nvim's working directory",
       },
       {
-        "<c-up>",
+        "<c-a-up>", -- default is Ctrl-Up, but it conflicts with window resize
         "<cmd>Yazi toggle<cr>",
         desc = "Resume the last yazi session",
       },

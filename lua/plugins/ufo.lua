@@ -2,6 +2,7 @@
 -- https://www.ericapisani.dev/how-to-install-nvim-ufo-in-lazyvim-to-enable-foldable-code-blocks/
 return {
   "kevinhwang91/nvim-ufo",
+  enabled = false, -- maybe we don't need it if we install JSON with extra/mason
   dependencies = {
     { "kevinhwang91/promise-async" },
   },
