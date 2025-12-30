@@ -10,13 +10,25 @@ return {
           },
         },
       },
+
+      -- mimicking vscode -- both tab (from super-tab) and enter accepts
+      -- keymap = {
+      --   preset = "super-tab",
+      --   ["<CR>"] = { "select_and_accept", "fallback" },
+      -- },
+
+      -- https://cmp.saghen.dev/configuration/keymap.html#enter
       keymap = {
-        preset = "super-tab",
-        -- mimicing vscode -- both tab (from super-tab) and enter accepts
-        ["<CR>"] = { "select_and_accept", "fallback" },
+        preset = "enter",
+        ["<Tab>"] = { "select_next", "fallback" },
+        ["<S-Tab>"] = { "select_prev", "fallback" },
+
+        -- ["<Up>"] = { "snippet_forward", "fallback" },
+        -- ["<Down>"] = { "snippet_backward", "fallback" },
+
+        ["<Up>"] = { "select_prev", "fallback" },
+        ["<Down>"] = { "select_next", "fallback" },
       },
-      -- maybe I want to disable ghost_text as well, research later:
-      -- https://cmp.saghen.dev/configuration/general.html
     },
   },
 }
