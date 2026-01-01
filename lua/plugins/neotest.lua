@@ -4,7 +4,7 @@ return {
     "nvim-neotest/neotest",
     dependencies = {
       "nvim-neotest/neotest-jest",
-      -- "Nelfimov/neotest-node-test-runner",
+      "religiosa1/neotest-node",
       "marilari88/neotest-vitest",
     },
     opts = {
@@ -13,7 +13,6 @@ return {
       },
       adapters = {
         "neotest-plenary",
-        -- ["neotest-node-test-runner"] = {},
         ["neotest-vitest"] = {},
         -- wip setup for work-related jest crap
         -- other available options: https://github.com/nvim-neotest/neotest-jest
@@ -30,6 +29,7 @@ return {
             enabled = false,
           },
         },
+        "neotest-node",
       },
     },
   },

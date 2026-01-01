@@ -1,3 +1,5 @@
+-- requires difftastic
+-- See: https://difftastic.wilfred.me.uk/
 return {
   "ahkohd/difft.nvim",
   keys = {
