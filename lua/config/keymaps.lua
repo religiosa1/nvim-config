@@ -31,6 +31,15 @@ vim.keymap.set("n", "<leader>bn", "<cmd>enew<CR>", { desc = "Open new buffer" })
 vim.keymap.set("i", "<C-d>", "<Delete>", { desc = "Delete forward" })
 vim.keymap.set("i", "<C-s>", "<C-o>dw", { desc = "Delete forward word" })
 
+-- Search functions and methods from LSP symbols, de-cluttered <Leader>ss, mostly for ts
+vim.keymap.set("n", "<leader>sf", function()
+  Snacks.picker.lsp_symbols({
+    title = "LSP functions and methods",
+    -- TODO: missing const foo = () => {}
+    filter = { default = { "Class", "Function", "Method", "Constructor", "Enum" } },
+  })
+end, { desc = "LSP functions and methods" })
+
 -- A lot of stuff for cut/paste without register
 vim.keymap.set("v", "<leader>p", "pgvy", { desc = "Paste w/o clipboard" })
 vim.keymap.set({ "v" }, "x", '"_d', { desc = "Delete to blackhole" })
