@@ -31,9 +31,12 @@ vim.keymap.set("n", "<leader>bn", "<cmd>enew<CR>", { desc = "Open new buffer" })
 vim.keymap.set("i", "<C-d>", "<Delete>", { desc = "Delete forward" })
 vim.keymap.set("i", "<C-s>", "<C-o>dw", { desc = "Delete forward word" })
 
+-- Go To definition in a horizontal split
+vim.keymap.set("n", "gh", "<C-w>v:lua Snacks.picker.lsp_definitions()<CR>", { desc = "Go to definition in Vsplit" })
+
 -- Search functions and methods from LSP symbols, de-cluttered <Leader>ss, mostly for ts
 vim.keymap.set("n", "<leader>sf", function()
-  Snacks.picker.lsp_symbols({
+  Snacks.picker.treesitter({
     title = "LSP functions and methods",
     -- TODO: missing const foo = () => {}
     filter = { default = { "Class", "Function", "Method", "Constructor", "Enum" } },
