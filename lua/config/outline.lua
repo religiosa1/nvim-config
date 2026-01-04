@@ -43,7 +43,6 @@ local query_string = [[
   name: (property_identifier) @constructor
   (#eq? @constructor "constructor"))
 
-;; TODO: this will duplicate getters/setters. 
 (method_definition
   name: [(property_identifier) (private_property_identifier)] @method.name
   (#not-eq? @method.name "constructor"))
@@ -60,6 +59,37 @@ local relevant_captures = {
   "setter.name",
   "getter.name",
 }
+
+---Set of outline positions in a file
+---@class PositionSet
+---@field private lines table<number, number[]> table of lines, containing array of columns
+local PositionSet = {}
+PositionSet.__index = PositionSet
+
+---Create a new PositionSet instance
+---@return PositionSet
+function PositionSet.new()
+  local self = setmetatable({}, PositionSet)
+  self.lines = {}
+  return self
+end
+
+---Add position to the set.
+---@param pos snacks.picker.Pos
+---@return true if pos was added to the set, false if it's already present
+function PositionSet:add(pos)
+  local line = pos[1]
+  local col = pos[2]
+  if not self.lines[line] then
+    self.lines[line] = {}
+  end
+
+  local was_pos_in_set = vim.tbl_contains(self.lines[line], col)
+  if not was_pos_in_set then
+    table.insert(self.lines[line], col)
+  end
+  return not was_pos_in_set
+end
 
 --- Extracting a name (symbol) for a tree sitter node.
 --- For variable_declarator we're extracting from a variable name, for functions
@@ -196,6 +226,7 @@ local function get_outline_nodes(parser, buffer_id)
   local root = tree:root()
   local query = vim.treesitter.query.parse("typescript", query_string)
 
+  local positionsSet = PositionSet.new()
   local function_nodes = {}
 
   for id, node, _ in query:iter_captures(root, buffer_id) do
@@ -214,14 +245,16 @@ local function get_outline_nodes(parser, buffer_id)
     local name = get_node_name(capture_name, vim.treesitter.get_node_text(node, buffer_id))
     local start_row, start_col = node:start()
     local parent_container = find_parent_container(node)
-
-    table.insert(function_nodes, {
-      name = name,
-      kind = kind,
-      pos = { start_row + 1, start_col },
-      fn_node = symbol_container,
-      parent_fn = parent_container,
-    })
+    local pos = { start_row + 1, start_col }
+    if positionsSet:add(pos) then
+      table.insert(function_nodes, {
+        name = name,
+        kind = kind,
+        pos = pos,
+        fn_node = symbol_container,
+        parent_fn = parent_container,
+      })
+    end
     ::iter_captures::
   end
   return function_nodes
