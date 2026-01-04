@@ -4,6 +4,63 @@
 -- assigned to variables. So we're gathering the outline of a TS file with a
 -- tree-sitter query.
 
+--- Tree-sitter query to capture functions, classes, and methods
+local query_string = [[
+(function_declaration
+  name: (identifier) @function.name)
+
+(lexical_declaration
+  kind: "const"
+  (variable_declarator
+    name: (identifier) @arrow.name
+    value: [(arrow_function) (function_expression)]))
+
+
+((lexical_declaration
+  kind: _ @kind
+  (variable_declarator
+    name: (identifier) @var_arrow.name
+    value: [(arrow_function) (function_expression)]))
+  (#not-eq? @kind "const"))
+
+(variable_declaration
+  (variable_declarator
+    name: (identifier) @var_arrow.name
+    value: [(arrow_function) (function_expression)]))
+
+(class_declaration
+  name: (type_identifier) @class.name)
+
+(method_definition
+  "get"
+  name: (property_identifier) @getter.name)
+
+(method_definition
+  "set"
+  name: (property_identifier) @setter.name)
+
+(method_definition
+  name: (property_identifier) @constructor
+  (#eq? @constructor "constructor"))
+
+;; TODO: this will duplicate getters/setters. 
+(method_definition
+  name: [(property_identifier) (private_property_identifier)] @method.name
+  (#not-eq? @method.name "constructor"))
+]]
+
+---List of captures in treesitter query, that should result in a outline node
+local relevant_captures = {
+  "function.name",
+  "arrow.name",
+  "var_arrow.name",
+  "class.name",
+  "constructor",
+  "method.name",
+  "setter.name",
+  "getter.name",
+}
+
 --- Extracting a name (symbol) for a tree sitter node.
 --- For variable_declarator we're extracting from a variable name, for functions
 --- classes and methods we're extracting it directly from the node.
@@ -82,29 +139,53 @@ local function find_parent_container(name_node)
   return nil
 end
 
--- Tree-sitter query to capture functions, classes, and methods
-local query_string = [[
-(function_declaration
-  name: (identifier) @function.name)
-
-(lexical_declaration
-  (variable_declarator
-    name: (identifier) @arrow.name
-    value: [(arrow_function) (function_expression)]))
-
-(class_declaration
-  name: (type_identifier) @class.name)
-
-(method_definition
-  name: [(property_identifier) (private_property_identifier)] @method.name)
-]]
-
+--- Intermediate OutlineNode meta info
 ---@class OutlineNode
 ---@field name string
----@field kind string
+---@field kind string?
 ---@field pos snacks.picker.Pos
 ---@field fn_node TSNode
 ---@field parent_fn TSNode
+
+---Get the icon kind (for the icon) from the node
+---@param capture_name string
+---@return string?
+local function get_node_kind(capture_name)
+  if capture_name == "function.name" then
+    return "Function"
+  elseif capture_name == "arrow.name" then
+    return "Constant"
+  elseif capture_name == "var_arrow.name" then
+    return "Variable"
+  elseif capture_name == "class.name" then
+    return "Class"
+  elseif capture_name == "method.name" then
+    return "Method"
+  elseif capture_name == "constructor" then
+    return "Constructor"
+  elseif capture_name == "setter.name" or capture_name == "getter.name" then
+    return "Property"
+  end
+end
+
+---Get the icon kind (for the icon) from the node
+---@param capture_name string
+---@param node_text string
+---@return string name to be displayed in the snacks picker
+local function get_node_name(capture_name, node_text)
+  if capture_name == "constructor" then
+    return "constructor"
+  end
+
+  local name = node_text
+
+  if capture_name == "getter.name" then
+    name = "(get) " .. name
+  elseif capture_name == "setter.name" then
+    name = "(set) " .. name
+  end
+  return name
+end
 
 ---get all "interesting" for outline nodes
 ---@param parser vim.treesitter.LanguageTree
@@ -116,15 +197,11 @@ local function get_outline_nodes(parser, buffer_id)
   local query = vim.treesitter.query.parse("typescript", query_string)
 
   local function_nodes = {}
+
   for id, node, _ in query:iter_captures(root, buffer_id) do
     local capture_name = query.captures[id]
 
-    if
-      capture_name ~= "function.name"
-      and capture_name ~= "arrow.name"
-      and capture_name ~= "class.name"
-      and capture_name ~= "method.name"
-    then
+    if not vim.list_contains(relevant_captures, capture_name) then
       goto iter_captures
     end
 
@@ -133,50 +210,8 @@ local function get_outline_nodes(parser, buffer_id)
       goto iter_captures
     end
 
-    local kind = "Function" -- default
-
-    local name = vim.treesitter.get_node_text(node, buffer_id)
-
-    -- Determine kind based on capture type
-    if capture_name == "function.name" then
-      kind = "Function"
-    elseif capture_name == "arrow.name" then
-      -- Walk up to find lexical_declaration and check keyword
-      local declarator = node:parent()
-      local declaration = declarator and declarator:parent()
-      if declaration and declaration:type() == "lexical_declaration" then
-        local keyword_node = declaration:child(0)
-        if keyword_node then
-          local keyword = vim.treesitter.get_node_text(keyword_node, buffer_id)
-          kind = (keyword == "const") and "Constant" or "Variable"
-        end
-      end
-    elseif capture_name == "class.name" then
-      kind = "Class"
-    elseif capture_name == "method.name" then
-      -- Check if this is a constructor
-      if name == "constructor" then
-        kind = "Constructor"
-      else
-        -- Check if this is a getter or setter
-        local accessor_type = nil
-        for child in symbol_container:iter_children() do
-          local child_text = vim.treesitter.get_node_text(child, buffer_id)
-          if child_text == "get" or child_text == "set" then
-            accessor_type = child_text
-            break
-          end
-        end
-
-        if accessor_type then
-          kind = "Property"
-          -- Add (get) or (set) prefix to the name
-          name = "(" .. accessor_type .. ") " .. name
-        else
-          kind = "Method"
-        end
-      end
-    end
+    local kind = get_node_kind(capture_name)
+    local name = get_node_name(capture_name, vim.treesitter.get_node_text(node, buffer_id))
     local start_row, start_col = node:start()
     local parent_container = find_parent_container(node)
 
