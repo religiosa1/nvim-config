@@ -129,53 +129,12 @@ local function find_symbol_container(name_node)
   return nil
 end
 
----Find parent container (function, class) skipping the current symbol
----@param name_node TSNode
----@return TSNode?
-local function find_parent_container(name_node)
-  -- First, find the current symbol container
-  local current_container = find_symbol_container(name_node)
-  if not current_container then
-    return nil
-  end
-
-  -- For methods, check if they're inside a class
-  if current_container:type() == "method_definition" then
-    -- Walk up to find class_body, then class_declaration
-    local parent = current_container:parent()
-    while parent do
-      if parent:type() == "class_body" then
-        -- Get the class_declaration parent
-        return parent:parent()
-      end
-      parent = parent:parent()
-    end
-  end
-
-  -- For other symbols, find parent function/class
-  local current = current_container:parent()
-  while current do
-    local type = current:type()
-    if
-      type == "function_declaration"
-      or type == "arrow_function"
-      or type == "function_expression"
-      or type == "class_declaration"
-    then
-      return current
-    end
-    current = current:parent()
-  end
-  return nil
-end
-
 --- Intermediate OutlineNode meta info
 ---@class OutlineNode
 ---@field name string
 ---@field kind string?
----@field pos snacks.picker.Pos
----@field fn_node TSNode
----@field parent_fn TSNode
+---@field pos snacks.picker.Pos -- 1-indexed: [line, col]
+---@field range number[] -- 0-indexed: [start_line, start_col, end_line, end_col]
 
 ---Get the icon kind (for the icon) from the node
 ---@param capture_name string
@@ -243,16 +202,14 @@ local function get_outline_nodes(parser, buffer_id)
 
     local kind = get_node_kind(capture_name)
     local name = get_node_name(capture_name, vim.treesitter.get_node_text(node, buffer_id))
-    local start_row, start_col = node:start()
-    local parent_container = find_parent_container(node)
+    local start_row, start_col, end_row, end_col = symbol_container:range()
     local pos = { start_row + 1, start_col }
     if positionsSet:add(pos) then
       table.insert(function_nodes, {
         name = name,
         kind = kind,
-        pos = pos,
-        fn_node = symbol_container,
-        parent_fn = parent_container,
+        pos = pos, -- 1-indexed for picker
+        range = { start_row, start_col, end_row, end_col }, -- 0-indexed for comparison
       })
     end
     ::iter_captures::
@@ -260,61 +217,67 @@ local function get_outline_nodes(parser, buffer_id)
   return function_nodes
 end
 
+---Check if one node contains another (based on their position)
+---@param parent OutlineNode
+---@param child OutlineNode
+---@return boolean
+local function contains(parent, child)
+  return parent.range[1] <= child.range[1] and parent.range[3] >= child.range[3]
+end
+
 ---Build a hierarchical tree of items, based on the found outline nodes.
 ---@param outline_nodes OutlineNode
 ---@param file_path string
----@return snacks.picker.Item[]
+---@return snacks.picker.finder.Item[]
 local function build_tree(outline_nodes, file_path)
-  local items = {}
-  local last_child_tracker = {}
-
-  -- Create a virtual root for the file (like LSP symbols does)
-  local file_root = { text = "", root = true }
-
-  local function add_item(fn_data, parent_item)
-    local item = {
-      text = fn_data.name,
-      name = fn_data.name,
-      kind = fn_data.kind,
-      file = file_path,
-      pos = fn_data.pos,
-      tree = true,
-      parent = parent_item,
-    }
-
-    items[#items + 1] = item
-
-    -- Track as potential last child
-    if parent_item then
-      last_child_tracker[parent_item] = item
+  -- Sort by start position (line, then column)
+  table.sort(outline_nodes, function(a, b)
+    if a.range[1] ~= b.range[1] then
+      return a.range[1] < b.range[1]
     end
+    return a.range[2] < b.range[2]
+  end)
+  ---@type snacks.picker.finder.Item[]
+  local items = {}
+  local file_root = { text = "", root = true }
+  -- Recursively build tree structure
+  local function build_structure(nodes, parent_item, parent_range)
+    while #nodes > 0 do
+      local current = nodes[1]
+      -- if current node is not contained in parent, return to previous level
+      if parent_range and not contains(parent_range, current) then
+        return
+      end
 
-    -- Add children recursively
-    for _, child_fn in ipairs(outline_nodes) do
-      if child_fn.parent_fn == fn_data.fn_node then
-        add_item(child_fn, item)
+      -- Remove from list and create item
+      table.remove(nodes, 1)
+      ---@type snacks.picker.finder.Item
+      local item = {
+        text = current.name,
+        name = current.name,
+        kind = current.kind,
+        file = file_path,
+        pos = current.pos,
+        tree = true,
+        parent = parent_item,
+      }
+      items[#items + 1] = item
+      -- Recursively process children (nodes contained within current)
+      build_structure(nodes, item, current)
+      -- Mark as last child of parent if no more siblings
+      if #nodes == 0 or (parent_range and not contains(parent_range, nodes[1])) then
+        item.last = true
       end
     end
   end
-
-  -- Start with root-level symbols, all parented to file_root
-  for _, fn_data in ipairs(outline_nodes) do
-    if not fn_data.parent_fn then
-      add_item(fn_data, file_root)
-    end
-  end
-
-  -- Mark last children
-  for _, last_child in pairs(last_child_tracker) do
-    last_child.last = true
-  end
-
+  -- Build from root
+  build_structure(outline_nodes, file_root, nil)
   return items
 end
 
 ---Get snacks items for outline nodes for a typescript buffer with a treesitter
 ---query
----@return snacks.picker.Item[]
+---@return snacks.picker.finder.Item[]
 return function()
   local buffer_id = vim.api.nvim_get_current_buf()
   local parser = vim.treesitter.get_parser(buffer_id, "typescript")
