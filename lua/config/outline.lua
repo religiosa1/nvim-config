@@ -7,13 +7,15 @@
 --- Tree-sitter query to capture functions, classes, and methods
 local query_string = [[
 (function_declaration
-  name: (identifier) @function.name)
+  name: (identifier) @function.name
+) @function.definition
 
 (lexical_declaration
   kind: "const"
   (variable_declarator
     name: (identifier) @arrow.name
-    value: [(arrow_function) (function_expression)]))
+    value: [(arrow_function) (function_expression)])
+) @arrow.definition
 
 
 ((lexical_declaration
@@ -21,44 +23,39 @@ local query_string = [[
   (variable_declarator
     name: (identifier) @var_arrow.name
     value: [(arrow_function) (function_expression)]))
-  (#not-eq? @kind "const"))
+  (#not-eq? @kind "const")
+) @var_arrow.definition
 
 (variable_declaration
   (variable_declarator
     name: (identifier) @var_arrow.name
-    value: [(arrow_function) (function_expression)]))
+    value: [(arrow_function) (function_expression)])
+) @var_arrow.definition
 
 (class_declaration
-  name: (type_identifier) @class.name)
+  name: (type_identifier) @class.name
+) @class.definition
 
 (method_definition
   "get"
-  name: (property_identifier) @getter.name)
+  name: (property_identifier) @getter.name
+) @getter.definition
 
 (method_definition
   "set"
-  name: (property_identifier) @setter.name)
+  name: (property_identifier) @setter.name
+) @setter.definition
 
 (method_definition
-  name: (property_identifier) @constructor
-  (#eq? @constructor "constructor"))
+  name: (property_identifier) @constructor.name
+  (#eq? @constructor.name "constructor")
+) @constructor.definition
 
 (method_definition
   name: [(property_identifier) (private_property_identifier)] @method.name
-  (#not-eq? @method.name "constructor"))
+  (#not-eq? @method.name "constructor")
+) @method.definition
 ]]
-
----List of captures in treesitter query, that should result in a outline node
-local relevant_captures = {
-  "function.name",
-  "arrow.name",
-  "var_arrow.name",
-  "class.name",
-  "constructor",
-  "method.name",
-  "setter.name",
-  "getter.name",
-}
 
 ---Set of outline positions in a file
 ---@class PositionSet
@@ -91,44 +88,6 @@ function PositionSet:add(pos)
   return not was_pos_in_set
 end
 
---- Extracting a name (symbol) for a tree sitter node.
---- For variable_declarator we're extracting from a variable name, for functions
---- classes and methods we're extracting it directly from the node.
---- Whatever the fuck that above means?
----@param name_node TSNode
----@return TSNode?
-local function find_symbol_container(name_node)
-  -- First check if this is a variable declarator with a function value
-  -- Pattern: variable_declarator { name: identifier, value: arrow_function }
-  local parent = name_node:parent()
-  if parent and parent:type() == "variable_declarator" then
-    -- Check if the value is a function
-    for child in parent:iter_children() do
-      local child_type = child:type()
-      if child_type == "arrow_function" or child_type == "function_expression" then
-        return child
-      end
-    end
-  end
-
-  -- Otherwise, walk up the tree to find a symbol container
-  local current = name_node:parent()
-  while current do
-    local type = current:type()
-    if
-      type == "function_declaration"
-      or type == "function_expression"
-      or type == "arrow_function"
-      or type == "class_declaration"
-      or type == "method_definition"
-    then
-      return current
-    end
-    current = current:parent()
-  end
-  return nil
-end
-
 --- Intermediate OutlineNode meta info
 ---@class OutlineNode
 ---@field name string
@@ -150,7 +109,7 @@ local function get_node_kind(capture_name)
     return "Class"
   elseif capture_name == "method.name" then
     return "Method"
-  elseif capture_name == "constructor" then
+  elseif capture_name == "constructor.name" then
     return "Constructor"
   elseif capture_name == "setter.name" or capture_name == "getter.name" then
     return "Property"
@@ -176,6 +135,39 @@ local function get_node_name(capture_name, node_text)
   return name
 end
 
+---Get a map of capture name to captured nodes that we got from a query
+---@param query vim.treesitter.Query
+---@param match table<integer, TSNode[]>
+---@return table<string, TSNode>
+local function get_captured_nodes(query, match)
+  local captured_nodes = {}
+  for id, node in pairs(match) do
+    local capture_name = query.captures[id]
+    -- If node is a table (array of nodes), take the first one
+    local actual_node = type(node) == "table" and node[1] or node
+    if capture_name then
+      captured_nodes[capture_name] = actual_node
+    end
+  end
+  return captured_nodes
+end
+
+---Determine "symbol type" from a map of captured_nodes -- symbol type being
+---the part of capture name before the dot, e.g. "function", "var_arrow", etc.
+---@param captured_nodes table<string, TSNode>
+---@return string?
+local function get_symbol_type(captured_nodes)
+  ---@type string?
+  local symbol_type = nil
+  for capture_name in pairs(captured_nodes) do
+    if capture_name:match("%.name$") then
+      symbol_type = capture_name:match("^(.+)%.name$")
+      break
+    end
+  end
+  return symbol_type
+end
+
 ---get all "interesting" for outline nodes
 ---@param parser vim.treesitter.LanguageTree
 ---@param buffer_id number
@@ -188,22 +180,26 @@ local function get_outline_nodes(parser, buffer_id)
   local positionsSet = PositionSet.new()
   local function_nodes = {}
 
-  for id, node, _ in query:iter_captures(root, buffer_id) do
-    local capture_name = query.captures[id]
+  for _, match in query:iter_matches(root, buffer_id) do
+    local captured_nodes = get_captured_nodes(query, match)
+    local symbol_type = get_symbol_type(captured_nodes)
 
-    if not vim.list_contains(relevant_captures, capture_name) then
-      goto iter_captures
+    if not symbol_type then
+      goto next_match
     end
 
-    local symbol_container = find_symbol_container(node)
-    if not symbol_container then
-      goto iter_captures
+    local name_node = captured_nodes[symbol_type .. ".name"]
+    local def_node = captured_nodes[symbol_type .. ".definition"]
+
+    if not (name_node and def_node) then
+      goto next_match
     end
 
-    local kind = get_node_kind(capture_name)
-    local name = get_node_name(capture_name, vim.treesitter.get_node_text(node, buffer_id))
-    local start_row, start_col, end_row, end_col = symbol_container:range()
+    local kind = get_node_kind(symbol_type .. ".name")
+    local name = get_node_name(symbol_type .. ".name", vim.treesitter.get_node_text(name_node, buffer_id))
+    local start_row, start_col, end_row, end_col = def_node:range()
     local pos = { start_row + 1, start_col }
+
     if positionsSet:add(pos) then
       table.insert(function_nodes, {
         name = name,
@@ -212,7 +208,8 @@ local function get_outline_nodes(parser, buffer_id)
         range = { start_row, start_col, end_row, end_col }, -- 0-indexed for comparison
       })
     end
-    ::iter_captures::
+
+    ::next_match::
   end
   return function_nodes
 end
