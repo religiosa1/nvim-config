@@ -36,7 +36,7 @@ local query_string = [[
 
 ;; *** root-level callbacks *** ;;
 
-; Direct function calls at root level
+; Callbacks in direct function calls at root level
 (program
   (expression_statement
     (call_expression
@@ -44,7 +44,7 @@ local query_string = [[
       arguments: (arguments
         (arrow_function) @callback.definition) @callback.args)))
 
-; Method calls at root level
+; Callbacks in method calls at root level
 (program
   (expression_statement
     (call_expression
@@ -81,8 +81,6 @@ local query_string = [[
 ) @method.definition
 
 ;;*** constants *** ;;
-; FIXME: doesn't work because of the [(arrow_function) (function_expression)] part
-; Must come above FE assigned to variables, so it has lower priority
 
 ; non-exported root-level constants
 (program
@@ -106,7 +104,7 @@ local query_string = [[
 
 ---Set of outline positions in a file
 ---@class PositionSet
----@field private lines table<number, number[]> table of lines, containing array of columns
+---@field private lines table<number, table<number, number>> table of lines, containing map of columns to priority
 local PositionSet = {}
 PositionSet.__index = PositionSet
 
@@ -120,79 +118,111 @@ end
 
 ---Add position to the set.
 ---@param pos snacks.picker.Pos
----@return true if pos was added to the set, false if it's already present
-function PositionSet:add(pos)
+---@param conflict_priority number if an item with pos exists, but has lower priority -- append it anyway
+---@return boolean true if pos was added to the set, false if it's already present
+function PositionSet:add(pos, conflict_priority)
   local line = pos[1]
   local col = pos[2]
   if not self.lines[line] then
     self.lines[line] = {}
   end
 
-  local was_pos_in_set = vim.tbl_contains(self.lines[line], col)
-  if not was_pos_in_set then
-    table.insert(self.lines[line], col)
+  local existing_priority = self.lines[line][col]
+  if not existing_priority or existing_priority < conflict_priority then
+    self.lines[line][col] = conflict_priority
+    return true
+  else
+    return false
   end
-  return not was_pos_in_set
 end
+
+---Possible capture names from the t-s query. Will be suffixed with ".name" or
+---".definition" for capturing name and range correspondingly.
+---@enum SymbolType
+local SymbolType = {
+  Function = "function",
+  ---Function Expression assigned to a const/immutable variable
+  Arrow = "arrow",
+  ---Function Expression assigned to a mutable variable
+  VarArrow = "var_arrow",
+  Class = "class",
+  Method = "method",
+  Constructor = "constructor",
+  Getter = "getter",
+  Setter = "setter",
+  ---Root-level immutable variables
+  Const = "const",
+  ---Root-level callbacks
+  Callback = "callback",
+}
 
 --- Intermediate OutlineNode meta info
 ---@class OutlineNode
 ---@field name string
 ---@field kind string?
 ---@field pos snacks.picker.Pos -- 1-indexed: [line, col]
----@field range number[] -- 0-indexed: [start_line, start_col, end_line, end_col]
+---@field end_pos snacks.picker.Pos -- 1-indexed: [end_line, end_col]
 
 ---Get the icon kind (for the icon) from the node
 ---Full list of possible kinds can be found here:
----http://github.com/folke/snacks.nvim/blob/main/docs/picker.md#%EF%B8%8F-config
----@param capture_name string
+--- http://github.com/folke/snacks.nvim/blob/main/docs/picker.md#%EF%B8%8F-config
+---@param symbol_type SymbolType
 ---@return string?
-local function get_node_kind(capture_name)
-  if capture_name == "function.name" then
+local function get_node_kind(symbol_type)
+  if symbol_type == SymbolType.Function then
     return "Function"
-  elseif capture_name == "arrow.name" then
+  elseif symbol_type == SymbolType.Arrow then
     return "Constant"
-  elseif capture_name == "var_arrow.name" then
+  elseif symbol_type == SymbolType.VarArrow then
     return "Variable"
-  elseif capture_name == "class.name" then
+  elseif symbol_type == SymbolType.Class then
     return "Class"
-  elseif capture_name == "method.name" then
+  elseif symbol_type == SymbolType.Method then
     return "Method"
-  elseif capture_name == "constructor.name" then
+  elseif symbol_type == SymbolType.Constructor then
     return "Constructor"
-  elseif capture_name == "setter.name" or capture_name == "getter.name" then
+  elseif symbol_type == SymbolType.Getter or symbol_type == SymbolType.Setter then
     return "Property"
-  elseif capture_name == "const.name" then
+  elseif symbol_type == SymbolType.Const then
     return "Constant"
-  elseif capture_name == "callback.name" then
+  elseif symbol_type == SymbolType.Callback then
     return "Function"
   end
 end
 
+---Get capture_type conflict priority
+---@param symbol_type SymbolType
+---@return number
+local function get_node_priority(symbol_type)
+  if symbol_type == SymbolType.Const then
+    --- constants have lower priority to be overridden by FE assignment.
+    --- export consts are still captured as a separate entity, because of the extended range
+    return 500
+  else
+    return 1000
+  end
+end
+
 ---Get the icon kind (for the icon) from the node
----@param capture_name string
+---@param symbol_type SymbolType
 ---@param node_text string
 ---@return string name to be displayed in the snacks picker
-local function get_node_name(capture_name, node_text)
-  if capture_name == "constructor" then
-    return "constructor"
-  end
-
+local function get_node_name(symbol_type, node_text)
   local name = node_text
 
-  if capture_name == "getter.name" then
+  if symbol_type == SymbolType.Getter then
     name = "(get) " .. name
-  elseif capture_name == "setter.name" then
+  elseif symbol_type == SymbolType.Setter then
     name = "(set) " .. name
   elseif
-    capture_name == "function.name"
-    or capture_name == "arrow.name"
-    or capture_name == "var_arrow.name"
-    or capture_name == "constructor.name"
-    or capture_name == "method.name"
+    symbol_type == SymbolType.Function
+    or symbol_type == SymbolType.Arrow
+    or symbol_type == SymbolType.VarArrow
+    or symbol_type == SymbolType.Constructor
+    or symbol_type == SymbolType.Method
   then
     name = name .. "()"
-  elseif capture_name == "callback.name" then
+  elseif symbol_type == SymbolType.Callback then
     name = name .. " callback"
   end
   return name
@@ -258,18 +288,21 @@ local function get_outline_nodes(parser, buffer_id)
       goto next_match
     end
 
-    local kind = get_node_kind(symbol_type .. ".name")
-    local name = get_node_name(symbol_type .. ".name", vim.treesitter.get_node_text(name_node, buffer_id))
     local start_row, start_col, end_row, end_col = def_node:range()
     local pos = { start_row + 1, start_col }
+    local end_pos = { end_row + 1, end_col }
 
-    if positionsSet:add(pos) then
-      table.insert(function_nodes, {
-        name = name,
-        kind = kind,
-        pos = pos, -- 1-indexed for picker
-        range = { start_row, start_col, end_row, end_col }, -- 0-indexed for comparison
-      })
+    ---@type OutlineNode
+    local outline_node = {
+      name = get_node_name(symbol_type, vim.treesitter.get_node_text(name_node, buffer_id)),
+      kind = get_node_kind(symbol_type),
+      pos = pos,
+      end_pos = end_pos,
+    }
+
+    local conflict_priority = get_node_priority(symbol_type)
+    if positionsSet:add(pos, conflict_priority) then
+      table.insert(function_nodes, outline_node)
     end
 
     ::next_match::
@@ -282,7 +315,7 @@ end
 ---@param child OutlineNode
 ---@return boolean
 local function contains(parent, child)
-  return parent.range[1] <= child.range[1] and parent.range[3] >= child.range[3]
+  return parent.pos[1] <= child.pos[1] and parent.end_pos[1] >= child.end_pos[1]
 end
 
 ---Build a hierarchical tree of items, based on the found outline nodes.
@@ -292,10 +325,10 @@ end
 local function build_tree(outline_nodes, file_path)
   -- Sort by start position (line, then column)
   table.sort(outline_nodes, function(a, b)
-    if a.range[1] ~= b.range[1] then
-      return a.range[1] < b.range[1]
+    if a.pos[1] ~= b.pos[1] then
+      return a.pos[1] < b.pos[1]
     end
-    return a.range[2] < b.range[2]
+    return a.pos[2] < b.pos[2]
   end)
   ---@type snacks.picker.finder.Item[]
   local items = {}
@@ -318,6 +351,7 @@ local function build_tree(outline_nodes, file_path)
         kind = current.kind,
         file = file_path,
         pos = current.pos,
+        end_pos = current.end_pos,
         tree = true,
         parent = parent_item,
       }
