@@ -64,7 +64,8 @@ vim.keymap.set("n", "<leader>sf", function()
       items = outline(),
       format = "lsp_symbol",
       tree = true,
-      auto_confirm = true,
+      auto_confirm = false,
+      show_empty = true,
       jump = { tagstack = true, reuse_win = true },
     })
   else

@@ -282,5 +282,6 @@ return function()
 
   local outline_nodes = get_outline_nodes(parser, buffer_id)
   local file_path = vim.api.nvim_buf_get_name(buffer_id)
-  return build_tree(outline_nodes, file_path)
+  local tree = build_tree(outline_nodes, file_path)
+  return tree
 end
