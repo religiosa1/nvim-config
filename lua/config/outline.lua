@@ -44,14 +44,27 @@ local query_string = [[
       arguments: (arguments
         (arrow_function) @callback.definition) @callback.args)))
 
-; Callbacks in method calls at root level
+;; Callbacks in an object with intermediate function calls - capture only the property as name
 (program
   (expression_statement
     (call_expression
       function: (member_expression
+        object: (call_expression)
         property: (property_identifier) @callback.name)
       arguments: (arguments
-        (arrow_function) @callback.definition) @callback.args)))
+        (string) @callback.args
+        (arrow_function) @callback.definition))))
+
+;; Callbacks in an object with optional prop access only - capture the entire member_expression
+(program
+  (expression_statement
+    (call_expression
+      function: (member_expression
+        object: [(identifier) (member_expression)]
+        property: (property_identifier)) @callback.name
+      arguments: (arguments
+        (string) @callback.args
+        (arrow_function) @callback.definition))))
 
 ;;*** classes *** ;;
 
@@ -97,8 +110,9 @@ local query_string = [[
     declaration: (lexical_declaration
       kind: "const"
       (variable_declarator
-        name: (identifier) @const.name))
-  ) @const.definition
+        name: (identifier) @const.name)
+    ) @const.definition
+  )
 )
 ]]
 
@@ -241,7 +255,7 @@ local function get_node_name(symbol_type, node_text)
   then
     name = name .. "()"
   elseif symbol_type == SymbolType.Callback then
-    name = name .. " callback"
+    name = name .. "() callback"
   end
   return name
 end
