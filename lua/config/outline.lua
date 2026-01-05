@@ -102,34 +102,49 @@ local query_string = [[
 )
 ]]
 
----Set of outline positions in a file
----@class PositionSet
----@field private lines table<number, table<number, number>> table of lines, containing map of columns to priority
-local PositionSet = {}
-PositionSet.__index = PositionSet
+---Set of outline ndoes in a file per, deduplicated by their position
+---@class OutlineNodesSet
+---@field private lines table<number, table<number, { priority: number, node: OutlineNode }>> table of lines, containing map of columns to priority
+local OutlineNodesSet = {}
+OutlineNodesSet.__index = OutlineNodesSet
 
 ---Create a new PositionSet instance
----@return PositionSet
-function PositionSet.new()
-  local self = setmetatable({}, PositionSet)
+---@return OutlineNodesSet
+function OutlineNodesSet.new()
+  local self = setmetatable({}, OutlineNodesSet)
   self.lines = {}
   return self
 end
 
+---Extract underlying nodes to an arrya
+---@return OutlineNode[]
+function OutlineNodesSet:to_array()
+  local nodes = {}
+  for _, line_nodes in pairs(self.lines) do
+    for _, item in pairs(line_nodes) do
+      table.insert(nodes, item.node)
+    end
+  end
+  return nodes
+end
+
 ---Add position to the set.
----@param pos snacks.picker.Pos
+---@param node OutlineNode
 ---@param conflict_priority number if an item with pos exists, but has lower priority -- append it anyway
 ---@return boolean true if pos was added to the set, false if it's already present
-function PositionSet:add(pos, conflict_priority)
-  local line = pos[1]
-  local col = pos[2]
+function OutlineNodesSet:add(node, conflict_priority)
+  local line = node.pos[1]
+  local col = node.pos[2]
   if not self.lines[line] then
     self.lines[line] = {}
   end
 
-  local existing_priority = self.lines[line][col]
-  if not existing_priority or existing_priority < conflict_priority then
-    self.lines[line][col] = conflict_priority
+  local existing_node = self.lines[line][col]
+  if existing_node == nil or existing_node.priority < conflict_priority then
+    self.lines[line][col] = {
+      priority = conflict_priority,
+      node = node,
+    }
     return true
   else
     return false
@@ -198,6 +213,9 @@ local function get_node_priority(symbol_type)
     --- constants have lower priority to be overridden by FE assignment.
     --- export consts are still captured as a separate entity, because of the extended range
     return 500
+  elseif symbol_type == SymbolType.Getter or symbol_type == SymbolType.Setter then
+    -- getters or setters are higher priority than methods
+    return 1200
   else
     return 1000
   end
@@ -270,8 +288,7 @@ local function get_outline_nodes(parser, buffer_id)
   local root = tree:root()
   local query = vim.treesitter.query.parse("typescript", query_string)
 
-  local positionsSet = PositionSet.new()
-  local function_nodes = {}
+  local outline_nodes = OutlineNodesSet.new()
 
   for _, match in query:iter_matches(root, buffer_id) do
     local captured_nodes = get_captured_nodes(query, match)
@@ -293,21 +310,17 @@ local function get_outline_nodes(parser, buffer_id)
     local end_pos = { end_row + 1, end_col }
 
     ---@type OutlineNode
-    local outline_node = {
+    local node = {
       name = get_node_name(symbol_type, vim.treesitter.get_node_text(name_node, buffer_id)),
       kind = get_node_kind(symbol_type),
       pos = pos,
       end_pos = end_pos,
     }
-
     local conflict_priority = get_node_priority(symbol_type)
-    if positionsSet:add(pos, conflict_priority) then
-      table.insert(function_nodes, outline_node)
-    end
-
+    outline_nodes:add(node, conflict_priority)
     ::next_match::
   end
-  return function_nodes
+  return outline_nodes:to_array()
 end
 
 ---Check if one node contains another (based on their position)
