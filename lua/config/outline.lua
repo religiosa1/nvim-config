@@ -6,6 +6,8 @@
 
 --- Tree-sitter query to capture functions, classes, and methods
 local query_string = [[
+;;*** functions and fe assigned to a variable *** ;;
+
 (function_declaration
   name: (identifier) @function.name
 ) @function.definition
@@ -32,6 +34,27 @@ local query_string = [[
     value: [(arrow_function) (function_expression)])
 ) @var_arrow.definition
 
+;; *** root-level callbacks *** ;;
+
+; Direct function calls at root level
+(program
+  (expression_statement
+    (call_expression
+      function: (identifier) @callback.name
+      arguments: (arguments
+        (arrow_function) @callback.definition) @callback.args)))
+
+; Method calls at root level
+(program
+  (expression_statement
+    (call_expression
+      function: (member_expression
+        property: (property_identifier) @callback.name)
+      arguments: (arguments
+        (arrow_function) @callback.definition) @callback.args)))
+
+;;*** classes *** ;;
+
 (class_declaration
   name: (type_identifier) @class.name
 ) @class.definition
@@ -51,10 +74,34 @@ local query_string = [[
   (#eq? @constructor.name "constructor")
 ) @constructor.definition
 
+; general class methods
 (method_definition
   name: [(property_identifier) (private_property_identifier)] @method.name
   (#not-eq? @method.name "constructor")
 ) @method.definition
+
+;;*** constants *** ;;
+; FIXME: doesn't work because of the [(arrow_function) (function_expression)] part
+; Must come above FE assigned to variables, so it has lower priority
+
+; non-exported root-level constants
+(program
+  (lexical_declaration
+    kind: "const"
+    (variable_declarator
+      name: (identifier) @const.name)
+  ) @const.definition
+)
+
+; exported root-level constants
+(program
+  (export_statement
+    declaration: (lexical_declaration
+      kind: "const"
+      (variable_declarator
+        name: (identifier) @const.name))
+  ) @const.definition
+)
 ]]
 
 ---Set of outline positions in a file
@@ -96,6 +143,8 @@ end
 ---@field range number[] -- 0-indexed: [start_line, start_col, end_line, end_col]
 
 ---Get the icon kind (for the icon) from the node
+---Full list of possible kinds can be found here:
+---http://github.com/folke/snacks.nvim/blob/main/docs/picker.md#%EF%B8%8F-config
 ---@param capture_name string
 ---@return string?
 local function get_node_kind(capture_name)
@@ -113,6 +162,10 @@ local function get_node_kind(capture_name)
     return "Constructor"
   elseif capture_name == "setter.name" or capture_name == "getter.name" then
     return "Property"
+  elseif capture_name == "const.name" then
+    return "Constant"
+  elseif capture_name == "callback.name" then
+    return "Function"
   end
 end
 
@@ -131,6 +184,16 @@ local function get_node_name(capture_name, node_text)
     name = "(get) " .. name
   elseif capture_name == "setter.name" then
     name = "(set) " .. name
+  elseif
+    capture_name == "function.name"
+    or capture_name == "arrow.name"
+    or capture_name == "var_arrow.name"
+    or capture_name == "constructor.name"
+    or capture_name == "method.name"
+  then
+    name = name .. "()"
+  elseif capture_name == "callback.name" then
+    name = name .. " callback"
   end
   return name
 end
