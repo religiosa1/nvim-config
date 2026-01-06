@@ -116,7 +116,7 @@ local query_string = [[
 )
 ]]
 
----Set of outline ndoes in a file per, deduplicated by their position
+---Set of outline nodes in a file, deduplicated by their position
 ---@class OutlineNodesSet
 ---@field private lines table<number, table<number, { priority: number, node: OutlineNode }>> table of lines, containing map of columns to priority
 local OutlineNodesSet = {}
@@ -130,7 +130,7 @@ function OutlineNodesSet.new()
   return self
 end
 
----Extract underlying nodes to an arrya
+---Extract underlying nodes to an array
 ---@return OutlineNode[]
 function OutlineNodesSet:to_array()
   local nodes = {}
