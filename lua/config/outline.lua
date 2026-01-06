@@ -238,8 +238,10 @@ end
 ---Get the icon kind (for the icon) from the node
 ---@param symbol_type SymbolType
 ---@param node_text string
+---@param captured_nodes table<string, TSNode[]>
+---@param buffer_id integer
 ---@return string name to be displayed in the snacks picker
-local function get_node_name(symbol_type, node_text)
+local function get_node_name(symbol_type, node_text, captured_nodes, buffer_id) -- FIXME: debug args
   local name = node_text
 
   if symbol_type == SymbolType.Getter then
@@ -255,7 +257,26 @@ local function get_node_name(symbol_type, node_text)
   then
     name = name .. "()"
   elseif symbol_type == SymbolType.Callback then
-    name = name .. "() callback"
+    -- FIXME: the idea was, that we will have a list of args in a match.
+    -- instead, we have multiple matches with a single arg inside, and repeated
+    -- entries are prevented by the OutlineNodesSet
+    local nodes_list = vim
+      .iter(captured_nodes)
+      :filter(function(id)
+        return id == SymbolType.Callback .. ".args"
+      end)
+      :map(function(_, nodes)
+        return nodes
+      end)
+      :totable()
+    local args = vim
+      .iter(nodes_list)
+      :flatten(math.huge)
+      :map(function(node)
+        return vim.treesitter.get_node_text(node, buffer_id)
+      end)
+      :join(", ")
+    name = name .. string.format("(%s) callback", args)
   end
   return name
 end
@@ -263,16 +284,12 @@ end
 ---Get a map of capture name to captured nodes that we got from a query
 ---@param query vim.treesitter.Query
 ---@param match table<integer, TSNode[]>
----@return table<string, TSNode>
+---@return table<string, TSNode[]>
 local function get_captured_nodes(query, match)
   local captured_nodes = {}
-  for id, node in pairs(match) do
+  for id, nodes in pairs(match) do
     local capture_name = query.captures[id]
-    -- If node is a table (array of nodes), take the first one
-    local actual_node = type(node) == "table" and node[1] or node
-    if capture_name then
-      captured_nodes[capture_name] = actual_node
-    end
+    captured_nodes[capture_name] = nodes
   end
   return captured_nodes
 end
@@ -312,20 +329,22 @@ local function get_outline_nodes(parser, buffer_id)
       goto next_match
     end
 
-    local name_node = captured_nodes[symbol_type .. ".name"]
-    local def_node = captured_nodes[symbol_type .. ".definition"]
+    local name_nodes = captured_nodes[symbol_type .. ".name"]
+    local def_nodes = captured_nodes[symbol_type .. ".definition"]
 
-    if not (name_node and def_node) then
+    if not #name_nodes or not #def_nodes then
       goto next_match
     end
 
-    local start_row, start_col, end_row, end_col = def_node:range()
+    local start_row, start_col, end_row, end_col = def_nodes[1]:range()
     local pos = { start_row + 1, start_col }
     local end_pos = { end_row + 1, end_col }
 
+    local name_node_text = vim.treesitter.get_node_text(name_nodes[1], buffer_id)
+
     ---@type OutlineNode
     local node = {
-      name = get_node_name(symbol_type, vim.treesitter.get_node_text(name_node, buffer_id)),
+      name = get_node_name(symbol_type, name_node_text, captured_nodes, buffer_id),
       kind = get_node_kind(symbol_type),
       pos = pos,
       end_pos = end_pos,
