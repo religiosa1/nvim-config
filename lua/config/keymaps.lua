@@ -36,6 +36,12 @@ vim.keymap.set("i", "<C-s>", "<C-o>dw", { desc = "Delete forward word" })
 -- Go To definition in a horizontal split
 vim.keymap.set("n", "gh", "<C-w>v:lua Snacks.picker.lsp_definitions()<CR>", { desc = "Go to definition in Vsplit" })
 
+-- Extended default <C-g>: also yanking the filename
+vim.keymap.set("n", "<C-g>", function()
+  vim.fn.setreg("+", vim.fn.expand("%"))
+  vim.cmd("file")
+end, { desc = "Show file info and yank filename" })
+
 -- A lot of stuff for cut/paste without register
 vim.keymap.set("v", "<leader>p", "pgvy", { desc = "Paste w/o clipboard" })
 vim.keymap.set({ "v" }, "x", '"_d', { desc = "Delete to blackhole" })
@@ -43,6 +49,7 @@ vim.keymap.set({ "n", "o", "x" }, "<LocalLeader>x", '"_x', { desc = "X to blackh
 vim.keymap.set({ "n", "v", "o", "x" }, "<LocalLeader>d", '"_d', { desc = "Delete to blackhole" })
 vim.keymap.set({ "n", "v", "o", "x" }, "<LocalLeader>d", '"_d', { desc = "Delete to blackhole" })
 
+--More sane exit terminal mode
 vim.keymap.set("t", "<C-Esc>", "<C-\\><C-n>", { remap = true, desc = "Exit terminal mode" })
 
 -- scroll and center
