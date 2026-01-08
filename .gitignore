@@ -1,11 +1,24 @@
+# existing ignore entries
+tt.*
+.tests
+doc/tags
+debug
+.repro
+foo.*
+*.log
+data
+
+# General stuff 
+spell/
+lazy-lock.json
+lazyvim.json
+
 tags
 test.sh
 .luarc.json
 nvim
 
-spell/
-lazy-lock.json
-lazyvim.json
+# Omarchy-related stuff
 lua/plugins/all-themes.lua
 lua/plugins/disable-news-alert.lua
 lua/plugins/omarchy-theme-hotreload.lua

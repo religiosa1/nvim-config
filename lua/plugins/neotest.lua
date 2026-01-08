@@ -3,6 +3,7 @@ return {
   {
     "nvim-neotest/neotest",
     dependencies = {
+      "nvim-neotest/nvim-nio",
       "nvim-neotest/neotest-jest",
       "religiosa1/neotest-node",
       "marilari88/neotest-vitest",
