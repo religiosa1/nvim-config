@@ -14,6 +14,7 @@ return {
       }
     end,
     -- on_colors = function(colors)
+    --   colors.bg = "#282c34"
     --   colors.terminal_black = "#548ad3"
     -- end,
   },

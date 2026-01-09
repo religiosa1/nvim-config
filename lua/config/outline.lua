@@ -52,8 +52,11 @@ local query_string = [[
         object: (call_expression)
         property: (property_identifier) @callback.name)
       arguments: (arguments
-        (string) @callback.args
-        (arrow_function) @callback.definition))))
+        (arrow_function) @callback.definition
+      ) @callback.args
+    )
+  )
+)
 
 ;; Callbacks in an object with optional prop access only - capture the entire member_expression
 (program
@@ -63,8 +66,11 @@ local query_string = [[
         object: [(identifier) (member_expression)]
         property: (property_identifier)) @callback.name
       arguments: (arguments
-        (string) @callback.args
-        (arrow_function) @callback.definition))))
+        (arrow_function) @callback.definition
+      ) @callback.args
+    )
+  )
+)
 
 ;;*** classes *** ;;
 
@@ -237,12 +243,14 @@ end
 
 ---Get the icon kind (for the icon) from the node
 ---@param symbol_type SymbolType
----@param node_text string
 ---@param captured_nodes table<string, TSNode[]>
 ---@param buffer_id integer
 ---@return string name to be displayed in the snacks picker
-local function get_node_name(symbol_type, node_text, captured_nodes, buffer_id) -- FIXME: debug args
-  local name = node_text
+local function get_node_name(symbol_type, captured_nodes, buffer_id)
+  local name_nodes = captured_nodes[symbol_type .. ".name"]
+  assert(name_nodes)
+  assert(name_nodes[1])
+  local name = vim.treesitter.get_node_text(name_nodes[1], buffer_id)
 
   if symbol_type == SymbolType.Getter then
     name = "(get) " .. name
@@ -257,25 +265,20 @@ local function get_node_name(symbol_type, node_text, captured_nodes, buffer_id) 
   then
     name = name .. "()"
   elseif symbol_type == SymbolType.Callback then
-    -- FIXME: the idea was, that we will have a list of args in a match.
-    -- instead, we have multiple matches with a single arg inside, and repeated
-    -- entries are prevented by the OutlineNodesSet
-    local nodes_list = vim
-      .iter(captured_nodes)
-      :filter(function(id)
-        return id == SymbolType.Callback .. ".args"
-      end)
-      :map(function(_, nodes)
-        return nodes
-      end)
-      :totable()
     local args = vim
-      .iter(nodes_list)
+      .iter(captured_nodes[SymbolType.Callback .. ".args"])
+      :map(function(node)
+        return vim.iter(node:iter_children()):totable()
+      end)
       :flatten(math.huge)
+      :filter(function(node)
+        return node:type() == "string"
+      end)
       :map(function(node)
         return vim.treesitter.get_node_text(node, buffer_id)
       end)
       :join(", ")
+
     name = name .. string.format("(%s) callback", args)
   end
   return name
@@ -340,11 +343,8 @@ local function get_outline_nodes(parser, buffer_id)
     local pos = { start_row + 1, start_col }
     local end_pos = { end_row + 1, end_col }
 
-    local name_node_text = vim.treesitter.get_node_text(name_nodes[1], buffer_id)
-
-    ---@type OutlineNode
     local node = {
-      name = get_node_name(symbol_type, name_node_text, captured_nodes, buffer_id),
+      name = get_node_name(symbol_type, captured_nodes, buffer_id),
       kind = get_node_kind(symbol_type),
       pos = pos,
       end_pos = end_pos,
