@@ -38,7 +38,7 @@ vim.keymap.set("n", "gh", "<C-w>v:lua Snacks.picker.lsp_definitions()<CR>", { de
 
 -- Extended default <C-g>: also yanking the filename
 vim.keymap.set("n", "<C-g>", function()
-  vim.fn.setreg("+", vim.fn.expand("%"))
+  vim.fn.setreg("+", vim.fn.expand("%:~"))
   vim.cmd("file")
 end, { desc = "Show file info and yank filename" })
 
