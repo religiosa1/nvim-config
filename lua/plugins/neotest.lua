@@ -24,6 +24,9 @@ return {
             if not file_path then
               return false
             end
+            if require("neotest-node/util").has_node_test_imports(file_path) then
+              return false
+            end
             return vim.fn.fnamemodify(file_path, ":e:e"):match("test%.[jt]sx?$") ~= nil
           end,
           discovery = {
