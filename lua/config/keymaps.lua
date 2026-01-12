@@ -49,6 +49,17 @@ vim.keymap.set({ "n", "o", "x" }, "<LocalLeader>x", '"_x', { desc = "X to blackh
 vim.keymap.set({ "n", "v", "o", "x" }, "<LocalLeader>d", '"_d', { desc = "Delete to blackhole" })
 vim.keymap.set({ "n", "v", "o", "x" }, "<LocalLeader>d", '"_d', { desc = "Delete to blackhole" })
 
+vim.keymap.set("n", "<leader>ue", function()
+  if vim.lsp.is_enabled("codebook") then
+    vim.lsp.enable("codebook", false)
+    vim.diagnostic.reset()
+    vim.notify("Disabled codebook", vim.log.levels.WARN, { title = "Spelling" })
+  else
+    vim.lsp.enable("codebook", true)
+    vim.notify("Enabled codebook", { title = "Spelling" })
+  end
+end, { desc = "Toggle Codebook Sp[e]lling" })
+
 --More sane exit terminal mode
 vim.keymap.set("t", "<C-Esc>", "<C-\\><C-n>", { remap = true, desc = "Exit terminal mode" })
 

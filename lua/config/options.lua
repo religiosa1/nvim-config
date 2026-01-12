@@ -3,7 +3,6 @@
 -- Add any additional options here
 vim.opt.relativenumber = true
 vim.opt.list = true
-vim.opt.spelllang = {} -- disable built-in spellchecking
 vim.opt.listchars = {
   space = "·",
   tab = "-->",
