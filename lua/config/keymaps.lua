@@ -42,6 +42,13 @@ vim.keymap.set("n", "<C-g>", function()
   vim.cmd("file")
 end, { desc = "Show file info and yank filename" })
 
+-- Copy relative file path to clipboard and notify
+vim.keymap.set("n", "<C-x>", function()
+  local relative_path = vim.fn.expand("%:.")
+  vim.fn.setreg("+", relative_path)
+  vim.notify(relative_path, vim.log.levels.INFO, { title = "Copied file name", ft = "text" })
+end, { desc = "Copy relative path to clipboard" })
+
 -- A lot of stuff for cut/paste without register
 vim.keymap.set("v", "<leader>p", "pgvy", { desc = "Paste w/o clipboard" })
 vim.keymap.set({ "v" }, "x", '"_d', { desc = "Delete to blackhole" })
