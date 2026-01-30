@@ -51,11 +51,29 @@ end, { desc = "Copy relative path to clipboard" })
 
 -- A lot of stuff for cut/paste without register
 vim.keymap.set("v", "<leader>p", "pgvy", { desc = "Paste w/o clipboard" })
+
+function ReplaceWithRegister(type)
+  if type == "char" then
+    vim.cmd('normal! `[v`]"_dP')
+  elseif type == "line" then
+    vim.cmd('normal! `[V`]"_dP')
+  end
+end
+
+vim.keymap.set("n", "gR", function()
+  vim.o.operatorfunc = "v:lua.ReplaceWithRegister"
+  return "g@"
+end, { expr = true, desc = "Replace with register" })
+
+vim.keymap.set("n", "gRR", '"_ddP', { desc = "Replace line" })
+vim.keymap.set("x", "gR", '"_dP', { desc = "Replace with register" })
+
 vim.keymap.set({ "v" }, "x", '"_d', { desc = "Delete to blackhole" })
 vim.keymap.set({ "n", "o", "x" }, "<LocalLeader>x", '"_x', { desc = "X to blackhole" })
 vim.keymap.set({ "n", "v", "o", "x" }, "<LocalLeader>d", '"_d', { desc = "Delete to blackhole" })
 vim.keymap.set({ "n", "v", "o", "x" }, "<LocalLeader>d", '"_d', { desc = "Delete to blackhole" })
 
+-- Cookbook spell checks toggle
 vim.keymap.set("n", "<leader>ue", function()
   if vim.lsp.is_enabled("codebook") then
     vim.lsp.enable("codebook", false)
