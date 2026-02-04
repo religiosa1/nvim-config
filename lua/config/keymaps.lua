@@ -101,7 +101,7 @@ vim.keymap.set("v", "S", "gsa", { remap = true, desc = "Add surrounding" })
 vim.keymap.set(
   "n",
   "<leader>o",
-  "<cmd>lua require('oil').open_float('.')<CR>",
+  "<cmd>lua require('oil').open_float()<CR>",
   { desc = "Open Oil in the current folder" }
 )
 

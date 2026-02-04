@@ -21,7 +21,9 @@ return {
     lazy = false,
   },
   {
-    "benomahony/oil-git.nvim",
+    -- that's a fork of benomahony/oil-git.nvim, as that plugin has really bad performance
+    "smiggiddy/git-oil.nvim",
     dependencies = { "stevearc/oil.nvim" },
+    opts = {},
   },
 }
