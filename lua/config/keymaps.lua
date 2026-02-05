@@ -43,7 +43,7 @@ vim.keymap.set("n", "<C-g>", function()
 end, { desc = "Show file info and yank filename" })
 
 -- Copy relative file path to clipboard and notify
-vim.keymap.set("n", "<C-x>", function()
+vim.keymap.set("n", "<C-s>", function()
   local relative_path = vim.fn.expand("%:.")
   vim.fn.setreg("+", relative_path)
   vim.notify(relative_path, vim.log.levels.INFO, { title = "Copied file name", ft = "text" })
