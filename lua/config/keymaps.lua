@@ -105,6 +105,8 @@ vim.keymap.set(
   { desc = "Open Oil in the current folder" }
 )
 
+vim.keymap.set("v", "<leader>=", "<cmd>Calcium replace<CR><Esc>", { desc = "Evaluate math expression" })
+
 -- Custom de-cluttered <Leader>ss picker for outline
 vim.keymap.set("n", "<leader>sf", function()
   local ft = vim.bo.filetype
