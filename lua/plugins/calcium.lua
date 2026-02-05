@@ -2,5 +2,16 @@
 return {
   "necrom4/calcium.nvim",
   cmd = { "Calcium" },
-  opts = {},
+  opts = {
+    default_mode = "replace",
+  },
+  keys = {
+    {
+      "<leader>=",
+      ":Calcium replace<CR>",
+      desc = "Calculate",
+      mode = { "n", "v" },
+      silent = true,
+    },
+  },
 }

@@ -98,15 +98,6 @@ vim.keymap.set("n", "ds", "gsd", { remap = true, desc = "Delete surrounding" })
 vim.keymap.set("n", "cs", "gsr", { remap = true, desc = "Replace surrounding" })
 vim.keymap.set("v", "S", "gsa", { remap = true, desc = "Add surrounding" })
 
-vim.keymap.set(
-  "n",
-  "<leader>o",
-  "<cmd>lua require('oil').open_float()<CR>",
-  { desc = "Open Oil in the current folder" }
-)
-
-vim.keymap.set("v", "<leader>=", "<cmd>Calcium replace<CR><Esc>", { desc = "Evaluate math expression" })
-
 -- Custom de-cluttered <Leader>ss picker for outline
 vim.keymap.set("n", "<leader>sf", function()
   local ft = vim.bo.filetype
