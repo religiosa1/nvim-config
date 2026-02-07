@@ -1,3 +1,10 @@
+local function float_only_close()
+  local is_float = vim.api.nvim_win_get_config(0).relative ~= ""
+  if is_float then
+    require("oil").close()
+  end
+end
+
 return {
   {
     "stevearc/oil.nvim",
@@ -14,8 +21,8 @@ return {
         border = "double",
       },
       keymaps = {
-        q = { 'actions.close', mode = "n" },
-        ["<Esc>"] = { 'actions.close', mode = "n" },
+        q = { float_only_close, mode = "n", desc = "Close float window" },
+        ["<Esc>"] = { float_only_close, mode = "n", desc = "Close float window" },
       },
     },
     keys = {
