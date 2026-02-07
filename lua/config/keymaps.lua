@@ -31,23 +31,30 @@ end, { desc = "Toggle ruler guides" })
 vim.keymap.set("n", "<leader>bn", "<cmd>enew<CR>", { desc = "Open new buffer" })
 
 vim.keymap.set("i", "<C-d>", "<Delete>", { desc = "Delete forward" })
+vim.keymap.set("i", "<C-в>", "<Delete>")
 vim.keymap.set("i", "<C-s>", "<C-o>dw", { desc = "Delete forward word" })
+vim.keymap.set("i", "<C-ы>", "<Delete>")
 
 -- Go To definition in a horizontal split
 vim.keymap.set("n", "gh", "<C-w>v:lua Snacks.picker.lsp_definitions()<CR>", { desc = "Go to definition in Vsplit" })
 
 -- Extended default <C-g>: also yanking the filename
-vim.keymap.set("n", "<C-g>", function()
+local function yankAboslutePath()
   vim.fn.setreg("+", vim.fn.expand("%:~"))
   vim.cmd("file")
-end, { desc = "Show file info and yank filename" })
+end
+
+vim.keymap.set("n", "<C-g>", yankAboslutePath, { desc = "Show file info and yank filename" })
+vim.keymap.set("n", "<C-п>", yankAboslutePath)
 
 -- Copy relative file path to clipboard and notify
-vim.keymap.set("n", "<C-s>", function()
+local function yankRelativePath()
   local relative_path = vim.fn.expand("%:.")
   vim.fn.setreg("+", relative_path)
   vim.notify(relative_path, vim.log.levels.INFO, { title = "Copied file name", ft = "text" })
-end, { desc = "Copy relative path to clipboard" })
+end
+vim.keymap.set("n", "<C-s>", yankRelativePath, { desc = "Copy relative path to clipboard" })
+vim.keymap.set("n", "<C-ы>", yankRelativePath)
 
 -- A lot of stuff for cut/paste without register
 vim.keymap.set("v", "<leader>p", "pgvy", { desc = "Paste w/o clipboard" })
