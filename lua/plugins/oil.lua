@@ -13,6 +13,10 @@ return {
         -- see :help 'winborder' and :help nvim_open_win
         border = "double",
       },
+      keymaps = {
+        q = { 'actions.close', mode = "n" },
+        ["<Esc>"] = { 'actions.close', mode = "n" },
+      },
     },
     keys = {
       {
