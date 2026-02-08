@@ -24,6 +24,9 @@ return {
         q = { float_only_close, mode = "n", desc = "Close float window" },
         ["<Esc>"] = { float_only_close, mode = "n", desc = "Close float window" },
       },
+      view_options = {
+        show_hidden = true,
+      },
     },
     keys = {
       {
