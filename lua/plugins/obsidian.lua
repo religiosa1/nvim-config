@@ -9,12 +9,12 @@ return {
     workspaces = {
       {
         name = "personal",
-        path = "~/Documents/obsidian"
+        path = "~/Documents/obsidian",
       },
     },
     attachments = {
-      folder = ".attachments",
-    }
+      folder = "attachments",
+    },
   },
   keys = {
     {
@@ -42,18 +42,18 @@ return {
           local has_name = name:len() > 0
           local id = has_name and name or nil
           local obsidian = require("obsidian")
-          local note = obsidian.Note.create {
+          local note = obsidian.Note.create({
             id = id,
             -- TODO: figure out where this should come from
             -- template = Obsidian.opts.note.template,
-          }
+          })
           -- Open the note in a new buffer.
-          note:open { sync = true }
-          note:write_to_buffer {
+          note:open({ sync = true })
+          note:write_to_buffer({
             template = Obsidian.opts.note.template,
-          }
+          })
           if has_name then
-            vim.cmd('file ' .. value .. ".md")
+            vim.cmd("file " .. value .. ".md")
           end
         end)
       end,
