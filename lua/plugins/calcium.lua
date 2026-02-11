@@ -13,7 +13,6 @@ return {
       "<cmd>Calcium replace<CR>",
       desc = "Calculate",
       mode = { "n", "v" },
-      silent = true,
     },
   },
 }

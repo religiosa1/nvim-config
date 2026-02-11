@@ -1,5 +1,3 @@
-local outline = require("config.outline")
-
 -- Keymaps are automatically loaded on the VeryLazy event
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
@@ -104,24 +102,3 @@ vim.keymap.set("n", "ys", "gsa", { remap = true, desc = "Add surrounding" })
 vim.keymap.set("n", "ds", "gsd", { remap = true, desc = "Delete surrounding" })
 vim.keymap.set("n", "cs", "gsr", { remap = true, desc = "Replace surrounding" })
 vim.keymap.set("v", "S", "gsa", { remap = true, desc = "Add surrounding" })
-
--- Custom de-cluttered <Leader>ss picker for outline
-vim.keymap.set("n", "<leader>sf", function()
-  local ft = vim.bo.filetype
-  if ft == "typescript" or ft == "typescriptreact" then
-    return Snacks.picker({
-      title = "Outline (treesitter)",
-      items = outline(),
-      format = "lsp_symbol",
-      tree = true,
-      auto_confirm = false,
-      show_empty = true,
-      jump = { tagstack = true, reuse_win = true },
-    })
-  else
-    Snacks.picker.lsp_symbols({
-      title = "Outline (LSP)",
-      filter = { default = { "Class", "Function", "Method", "Constructor", "Enum" } },
-    })
-  end
-end, { desc = "Outline" })
