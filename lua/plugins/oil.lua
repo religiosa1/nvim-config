@@ -27,11 +27,31 @@ return {
       view_options = {
         show_hidden = true,
       },
+      confirmation = {
+        border = "rounded"
+      }
     },
     keys = {
       {
         "<leader>o",
-        "<cmd>lua require('oil').open_float()<CR>",
+        -- "<cmd>lua require('oil').toggle_float()<CR>",
+        -- toggle with extra tricks to cleanup buffer contents on open. in case there are some edits left
+        function()
+          local oil = require("oil")
+          if vim.w.is_oil_win then
+            oil.close()
+          else
+            oil.open_float(nil, nil, function()
+              local bufnr = vim.api.nvim_get_current_buf()
+              local wins = vim.fn.win_findbuf(bufnr)
+              -- Only the float itself has this buffer -- we're calling render
+              -- to clean up potential edits in the float
+              if #wins == 1 then
+                require("oil.view").render_buffer_async(bufnr, {})
+              end
+            end)
+          end
+        end,
         desc = "Open Oil in the current folder",
         mode = { "n" },
         silent = true,
