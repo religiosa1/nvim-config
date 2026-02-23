@@ -1,0 +1,7 @@
+{
+	"Panic with Not Implemented error": {
+		"prefix": "td",
+		"description": "Panic with Not Implemented error",
+		"body": ["panic(\"${1:Not implemented}\");"]
+	}
+}
