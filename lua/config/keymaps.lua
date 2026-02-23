@@ -28,10 +28,11 @@ end, { desc = "Toggle ruler guides" })
 
 vim.keymap.set("n", "<leader>bn", "<cmd>enew<CR>", { desc = "Open new buffer" })
 
-vim.keymap.set("i", "<C-d>", "<Delete>", { desc = "Delete forward" })
 vim.keymap.set("i", "<C-в>", "<Delete>")
+vim.keymap.set("i", "<C-d>", "<Delete>", { desc = "Delete forward" })
+vim.keymap.set("i", "<C-ы>", "<C-o>dw")
 vim.keymap.set("i", "<C-s>", "<C-o>dw", { desc = "Delete forward word" })
-vim.keymap.set("i", "<C-ы>", "<Delete>")
+vim.keymap.set("i", "<C-ц>", "<C-w>")
 
 -- Go To definition in a horizontal split
 vim.keymap.set("n", "gh", "<C-w>v:lua Snacks.picker.lsp_definitions()<CR>", { desc = "Go to definition in Vsplit" })
