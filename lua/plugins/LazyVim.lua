@@ -120,7 +120,7 @@ return {
                     mode = { "i", "n" },
                     desc = "Toggle Ignored Symbols",
                   },
-                  ["<a-h>"] = {
+                  ["<a-o>"] = {
                     "toggle_hidden_symbols",
                     mode = { "i", "n" },
                     desc = "Toggle Hidden Symbols",
@@ -138,7 +138,7 @@ return {
                     mode = { "i", "n" },
                     desc = "Toggle Ignored Symbols",
                   },
-                  ["<a-h>"] = {
+                  ["<a-o>"] = {
                     "toggle_hidden_workspace_symbols",
                     mode = { "i", "n" },
                     desc = "Toggle Hidden Symbols",

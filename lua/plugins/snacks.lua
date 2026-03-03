@@ -14,5 +14,19 @@ return {
         end
       end,
     },
+    picker = {
+      win = {
+        input = {
+          keys = {
+            -- remapping <a-h> to <a-o> to avoid conflicts with tmux keybinds
+            -- Not mnemonical, but right next to <a-i> for ignored
+            ["<a-o>"] = {
+              "toggle_hidden",
+              mode = { "n", "i" },
+            },
+          },
+        },
+      },
+    }
   },
 }
