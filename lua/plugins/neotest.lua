@@ -14,7 +14,14 @@ return {
       },
       adapters = {
         "neotest-plenary",
-        ["neotest-vitest"] = {},
+        ["neotest-vitest"] = {
+          is_test_file = function(file_path)
+            if require("neotest-node/util").has_node_test_imports(file_path) then
+              return false
+            end
+            return vim.fn.fnamemodify(file_path, ":e:e"):match("test%.[jt]sx?$") ~= nil
+          end,
+        },
         -- wip setup for work-related jest crap
         -- other available options: https://github.com/nvim-neotest/neotest-jest
         ["neotest-jest"] = {
