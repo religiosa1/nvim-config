@@ -23,6 +23,8 @@ return {
       keymaps = {
         q = { float_only_close, mode = "n", desc = "Close float window" },
         ["<Esc>"] = { float_only_close, mode = "n", desc = "Close float window" },
+        ["<C-s>"] = false,
+        ["<C-v>"] = { "actions.select", opts = { vertical = true } },
       },
       view_options = {
         show_hidden = true,
