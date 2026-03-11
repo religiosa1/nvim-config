@@ -1,3 +1,30 @@
+-- FIXME: Obsidian plugin does a lot of unnecessary shit.
+-- We'd be better of just inlining a couple of commands.
+--
+-- Basically, we just need an option to search for notes + create a new one with
+-- the default template, which we can probably interpolate with the new Obsidian CLI.
+
+local workspaces = {
+  {
+    name = "personal",
+    path = "~/Documents/obsidian",
+  },
+}
+--- Get current or the first workspace path
+--- @return string | nil
+local function get_workspace_path()
+  local ws_path
+  if Obsidian and Obsidian.workspace then
+    ws_path = tostring(Obsidian.workspace.path)
+  else
+    ws_path = workspaces[1].path
+  end
+  if not ws_path then
+    return nil
+  end
+  return vim.fn.expand(ws_path)
+end
+
 -- Obsidian new creates notes with Zettelkasten style id -- which is also the buffer name.
 -- I don't like that, so we're just using the normal name from the input.
 local function create_new_note()
@@ -20,13 +47,8 @@ local function create_new_note()
     })
     -- Renaming the buffer afterwords, for the same title inside of a workspace
     if has_name then
-      local ws_path
-      if Obsidian.workspace then
-        ws_path = tostring(Obsidian.workspace.path)
-      elseif Obsidian.opts.workspaces[1].path then
-        ws_path = tostring(Obsidian.opts.workspaces[1].path)
-      end
-      local full_path = ws_path and vim.fn.expand(ws_path) .. "/" .. name .. ".md" or name .. ".md"
+      local ws_path = get_workspace_path()
+      local full_path = ws_path and vim.fs.joinpath(ws_path, name .. ".md") or name .. ".md"
       vim.cmd("file " .. full_path)
     end
   end)
@@ -40,14 +62,22 @@ return {
   ---@type obsidian.config
   opts = {
     legacy_commands = false, -- this will be removed in the next major release
-    workspaces = {
-      {
-        name = "personal",
-        path = "~/Documents/obsidian",
-      },
-    },
+    workspaces = workspaces,
     attachments = {
       folder = "attachments",
+    },
+    note = {
+      -- this is IIFE, but obsidian-nvim doesn't support lazy evaluation here
+      template = (function()
+        local template_name = "templates/frontmatter.md"
+        local ws_path = get_workspace_path()
+        local template_path = ws_path and vim.fs.joinpath(ws_path, template_name) or template_name
+        if vim.uv.fs_stat(template_path) == nil then
+          return nil
+        else
+          return template_path
+        end
+      end)(),
     },
   },
   keys = {
@@ -68,17 +98,15 @@ return {
       "<leader>Oo",
       -- ditching obsidian's quick_switch thing, as it doesn't allow to open in a split
       function()
-        local ws_path = Obsidian.workspace and tostring(Obsidian.workspace.path)
-          or vim.fn.expand(tostring(Obsidian.opts.workspaces[1].path))
         Snacks.picker.files({
-          cwd = ws_path,
+          cwd = get_workspace_path(),
         })
       end,
       desc = "Open a note",
       mode = { "n" },
     },
     {
-      "<leader>On",
+      "<leader>Oc",
       create_new_note,
       desc = "Create a new note",
       mode = { "n" },
