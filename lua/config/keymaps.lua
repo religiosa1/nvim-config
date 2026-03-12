@@ -5,27 +5,6 @@ vim.keymap.set("n", "<leader>uW", function()
   vim.o.list = not vim.o.list
 end, { desc = "Toggle whitespace display" })
 
--- Store the last non-empty colorcolumn value
-local last_cc = "80,120,140"
--- Track changes to colorcolumn from any source
-vim.api.nvim_create_autocmd("OptionSet", {
-  pattern = "colorcolumn",
-  callback = function()
-    local current = vim.v.option_new
-    if current ~= "" then
-      last_cc = current
-    end
-  end,
-})
--- Actually setting colorcolumn on keymap
-vim.keymap.set("n", "<leader>uR", function()
-  if vim.o.cc == "" then
-    vim.opt.cc = last_cc
-  else
-    vim.opt.cc = ""
-  end
-end, { desc = "Toggle ruler guides" })
-
 vim.keymap.set("n", "<leader>bn", "<cmd>enew<CR>", { desc = "Open new buffer" })
 
 vim.keymap.set("i", "<C-в>", "<Delete>")

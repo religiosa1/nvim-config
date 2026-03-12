@@ -10,6 +10,9 @@ vim.opt.listchars = {
 }
 vim.opt.cc = "80,120,140"
 
+vim.opt_local.wrap = true
+vim.opt_local.spell = true
+
 -- setting terminal tab title
 vim.opt.title = true
 -- the most important part to avoid confusion -- when launching in just
