@@ -6,6 +6,10 @@ vim.keymap.set("n", "<leader>uW", function()
 end, { desc = "Toggle whitespace display" })
 
 vim.keymap.set("n", "<leader>bn", "<cmd>enew<CR>", { desc = "Open new buffer" })
+vim.keymap.set("n", "<leader>bm", function()
+  vim.cmd("enew")
+  vim.bo.filetype = "markdown"
+end, { desc = "Open new markdown buffer" })
 
 vim.keymap.set("i", "<C-в>", "<Delete>")
 vim.keymap.set("i", "<C-d>", "<Delete>", { desc = "Delete forward" })
