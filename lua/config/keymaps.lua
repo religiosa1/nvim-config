@@ -82,3 +82,8 @@ vim.keymap.set("n", "ys", "gsa", { remap = true, desc = "Add surrounding" })
 vim.keymap.set("n", "ds", "gsd", { remap = true, desc = "Delete surrounding" })
 vim.keymap.set("n", "cs", "gsr", { remap = true, desc = "Replace surrounding" })
 vim.keymap.set("v", "S", "gsa", { remap = true, desc = "Add surrounding" })
+
+-- Bufferline move buffers around and a shorter "pick buffer"
+vim.keymap.set("n", "<A-H>", "<cmd>BufferLineMovePrev<cr>")
+vim.keymap.set("n", "<A-L>", "<cmd>BufferLineMoveNext<cr>")
+vim.keymap.set("n", "<A-J>", "<cmd>BufferLinePick<cr>")
