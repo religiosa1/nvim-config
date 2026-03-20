@@ -91,3 +91,8 @@ vim.keymap.set("v", "S", "gsa", { remap = true, desc = "Add surrounding" })
 vim.keymap.set("n", "<A-H>", "<cmd>BufferLineMovePrev<cr>")
 vim.keymap.set("n", "<A-L>", "<cmd>BufferLineMoveNext<cr>")
 vim.keymap.set("n", "<A-J>", "<cmd>BufferLinePick<cr>")
+
+-- Fake group to be filled in with our inline plugins
+require("which-key").add({
+  { "<leader>j", group = "Code editing actions" },
+})
