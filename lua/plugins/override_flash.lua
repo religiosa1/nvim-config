@@ -7,7 +7,7 @@ return {
         -- keeping it for multi-line search mostly
         highlight = { backdrop = false },
         -- If we want to keep it partially a couple of extra options down below:
-        -- autohide = true,
+        autohide = true,
         -- enabled = false,
       },
     },
