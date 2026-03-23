@@ -30,6 +30,7 @@ return {
         ["<Down>"] = { "select_next", "fallback" },
         ["<C-k>"] = { "select_prev", "fallback" },
         ["<C-j>"] = { "select_next", "fallback" },
+        ["<C-y>"] = {},
       },
     },
   },

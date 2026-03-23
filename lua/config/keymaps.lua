@@ -16,6 +16,9 @@ vim.keymap.set("i", "<C-d>", "<Delete>", { desc = "Delete forward" })
 vim.keymap.set("i", "<C-ы>", "<C-o>dw")
 vim.keymap.set("i", "<C-s>", "<C-o>dw", { desc = "Delete forward word" })
 vim.keymap.set("i", "<C-ц>", "<C-w>")
+-- Vim normally uses C-d in insert mode to decrease indent, but this conflicts with our delete binding
+-- So let's switch that to <C-y> which normally is a useless "Insert the character which is above the cursor."
+vim.keymap.set("i", "<C-y>", "<C-o><<", { silent = true })
 
 -- Go To definition in a horizontal split
 vim.keymap.set("n", "gh", "<C-w>v:lua Snacks.picker.lsp_definitions()<CR>", { desc = "Go to definition in Vsplit" })

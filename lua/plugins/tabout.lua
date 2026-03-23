@@ -1,6 +1,7 @@
 return {
   {
     "abecodes/tabout.nvim",
+    disable = true,
     lazy = false,
     config = function()
       require("tabout").setup({
@@ -9,7 +10,7 @@ return {
         act_as_tab = true, -- shift content if tab out is not possible
         act_as_shift_tab = false, -- reverse shift content if tab out is not possible (if your keyboard/terminal supports <S-Tab>)
         default_tab = "<C-t>", -- shift default action (only at the beginning of a line, otherwise <TAB> is used)
-        default_shift_tab = "<C-d>", -- reverse shift default action,
+        default_shift_tab = "<C-y>", -- reverse shift default action; remmaped to our custom <C-y> from default <C-d>
         enable_backwards = true, -- well ...
         completion = false, -- if the tabkey is used in a completion pum
         tabouts = {
