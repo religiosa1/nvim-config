@@ -5,7 +5,6 @@ vim.keymap.set("n", "<leader>uW", function()
   vim.o.list = not vim.o.list
 end, { desc = "Toggle whitespace display" })
 
-vim.keymap.set("n", "<leader>bn", "<cmd>enew<CR>", { desc = "Open new buffer" })
 vim.keymap.set("n", "<leader>bm", function()
   vim.cmd("enew")
   vim.bo.filetype = "markdown"
