@@ -1,3 +1,6 @@
+if true then
+  return {}
+end
 local function float_only_close()
   local is_float = vim.api.nvim_win_get_config(0).relative ~= ""
   if is_float then
