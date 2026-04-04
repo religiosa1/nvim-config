@@ -102,5 +102,10 @@ vim.keymap.set("n", "<A-J>", "<cmd>BufferLinePick<cr>")
 
 -- Fake group to be filled in with our inline plugins
 require("which-key").add({
-  { "<leader>j", group = "Code editing actions" },
+  {
+    "<leader>j",
+    group = "Editing actions",
+    mode = { "n", "v" },
+    icon = { cat = "extension", name = "txt" },
+  },
 })

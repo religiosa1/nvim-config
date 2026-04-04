@@ -60,7 +60,7 @@ return {
   ft = "markdown",
   init = function()
     require("which-key").add({
-      { "<leader>O", group = "Obsidian" },
+      { "<leader>O", group = "Obsidian", icon = { cat = "extension", name = "md" } },
     })
   end,
   ---@module 'obsidian'

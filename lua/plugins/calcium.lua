@@ -7,12 +7,18 @@ return {
   opts = {
     default_mode = "replace",
   },
+  init = function(_, opts)
+    require("which-key").add({
+      { "<leader>=", icon = { icon = "", color = "yellow" } },
+    })
+  end,
   keys = {
     {
       "<leader>=",
       "<cmd>Calcium replace<CR>",
       desc = "Calculate",
       mode = { "n", "v" },
+      icon = { cat = "extension", name = "md" },
     },
   },
 }

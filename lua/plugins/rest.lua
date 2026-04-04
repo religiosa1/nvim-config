@@ -1,12 +1,14 @@
+require("which-key").add({
+  { "<leader>R", group = "Kulala REST/HTTP", icon = { cat = "extension", name = "http" }, mode = { "n", "v" } },
+})
 return {
   "mistweaverco/kulala.nvim",
   keys = {
-    { "<leader>R", "", desc = "+Rest" },
     { "<leader>Rb", "<cmd>lua require('kulala').scratchpad()<cr>", desc = "Open scratchpad" },
     { "<leader>Rr", "<cmd>lua require('kulala').replay()<cr>", desc = "Replay the last request" },
     -- removing FT restriction from some keys, so we can run those commands anywhere (e.g. markdown)
-    { "<leader>Rs", "<cmd>lua require('kulala').run()<cr>", desc = "Send the request" },
-    { "<leader>Rc", "<cmd>lua require('kulala').copy()<cr>", desc = "Copy as cURL" },
+    { "<leader>Rs", "<cmd>lua require('kulala').run()<cr>", desc = "Send the request", mode = { "n", "v" } },
+    { "<leader>Rc", "<cmd>lua require('kulala').copy()<cr>", desc = "Copy as cURL", mode = { "n", "v" } },
     { "<leader>RC", "<cmd>lua require('kulala').from_curl()<cr>", desc = "Paste from curl" },
     { "<leader>Re", "<cmd>lua require('kulala').set_selected_env()<cr>", desc = "Set environment" },
     -- the rest goes as is
