@@ -3,5 +3,10 @@
 		"prefix": "td",
 		"description": "Panic with Not Implemented error",
 		"body": ["panic(\"${1:Not implemented}\");"]
+	},
+	"if err != nil": {
+		"prefix": "ir",
+		"body": "if err != nil {\n\treturn ${1:nil}, ${2:err}\n}",
+		"description": "Snippet for if err != nil"
 	}
 }

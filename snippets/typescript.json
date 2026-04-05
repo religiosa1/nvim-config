@@ -3,5 +3,10 @@
 		"prefix": "td",
 		"description": "Throw not implemented error",
 		"body": ["throw new Error(\"Not implemented\");"]
+	},
+	"type enum": {
+		"prefix": "et",
+		"description": "obj as const enum type",
+		"body": ["export type $1 = typeof $1[keyof typeof $1]"]
 	}
 }

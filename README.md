@@ -26,6 +26,4 @@ A lot of omarchy customization plugins are also placed in the gitignore:
 
 ## TODOs:
 
-- [ ] Disable annoying snippets in markdown specifically, but across the board.
-      They bring too much clutter. Leave only my own personal stuff, or things I reviewed.
 - [ ] Add "copy file" and "archive and copy" file mini.files commands.

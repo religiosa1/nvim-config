@@ -20,8 +20,11 @@ return {
       -- https://cmp.saghen.dev/configuration/keymap.html#enter
       keymap = {
         preset = "enter",
-        ["<Tab>"] = { "select_next", "fallback" },
-        ["<S-Tab>"] = { "select_prev", "fallback" },
+        ["<A-m>"] = { "show_documentation", "hide_documentation" },
+        ["<C-p>"] = { "select_prev", "fallback_to_mappings" },
+        ["<C-n>"] = { "show", "select_next", "fallback_to_mappings" },
+        ["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
+        ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
 
         -- ["<Up>"] = { "snippet_forward", "fallback" },
         -- ["<Down>"] = { "snippet_backward", "fallback" },
@@ -30,6 +33,7 @@ return {
         ["<Down>"] = { "select_next", "fallback" },
         ["<C-k>"] = { "select_prev", "fallback" },
         ["<C-j>"] = { "select_next", "fallback" },
+        -- to avoid conflicts with our custom "decrease indent" keybinding
         ["<C-y>"] = {},
       },
     },
