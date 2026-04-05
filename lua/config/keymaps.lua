@@ -65,8 +65,6 @@ vim.keymap.set("n", "gRR", '"_ddP', { desc = "Replace line" })
 vim.keymap.set("x", "gR", '"_dP', { desc = "Replace with register" })
 
 vim.keymap.set({ "v" }, "x", '"_d', { desc = "Delete to blackhole" })
-vim.keymap.set({ "n", "o", "x" }, "<LocalLeader>x", '"_x', { desc = "X to blackhole" })
-vim.keymap.set({ "n", "v", "o", "x" }, "<LocalLeader>d", '"_d', { desc = "Delete to blackhole" })
 vim.keymap.set({ "n", "v", "o", "x" }, "<LocalLeader>d", '"_d', { desc = "Delete to blackhole" })
 
 -- Cookbook spell checks toggle
@@ -81,7 +79,7 @@ vim.keymap.set("n", "<leader>ue", function()
   end
 end, { desc = "Toggle Codebook Sp[e]lling" })
 
---More sane exit terminal mode
+-- More sane exit terminal mode -- doesn't work on MacOS
 vim.keymap.set("t", "<C-Esc>", "<C-\\><C-n>", { remap = true, desc = "Exit terminal mode" })
 
 -- scroll and center
