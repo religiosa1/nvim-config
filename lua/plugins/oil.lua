@@ -1,6 +1,5 @@
-if true then
-  return {}
-end
+-- I mostly use oil as a netrw replacement for now. The main file explorer is mini.files now.
+
 local function float_only_close()
   local is_float = vim.api.nvim_win_get_config(0).relative ~= ""
   if is_float then
@@ -38,7 +37,7 @@ return {
     },
     keys = {
       {
-        "<leader>o",
+        "<leader>O",
         "<cmd>lua require('oil').toggle_float()<CR>",
         -- toggle with extra tricks to cleanup buffer contents on open. in case there are some edits left
         -- function()
@@ -65,13 +64,14 @@ return {
     -- Optional dependencies
     dependencies = { { "nvim-mini/mini.icons", opts = {} } },
     -- dependencies = { "nvim-tree/nvim-web-devicons" }, -- use if you prefer nvim-web-devicons
+    --
     -- Lazy loading is not recommended because it is very tricky to make it work correctly in all situations.
     lazy = false,
   },
-  {
-    -- that's a fork of benomahony/oil-git.nvim, as that plugin has really bad performance
-    "smiggiddy/git-oil.nvim",
-    dependencies = { "stevearc/oil.nvim" },
-    opts = {},
-  },
+  -- {
+  --   -- that's a fork of benomahony/oil-git.nvim, as that plugin has really bad performance
+  --   "smiggiddy/git-oil.nvim",
+  --   dependencies = { "stevearc/oil.nvim" },
+  --   opts = {},
+  -- },
 }

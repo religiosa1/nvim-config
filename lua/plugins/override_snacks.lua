@@ -6,6 +6,10 @@ return {
       -- Plugin is disabled by default, so no inline rending is there in markdown
       enabled = true,
     },
+    explorer = {
+      -- disabling snacks explorer as the default dir viewer in favor of mini.files
+      replace_netrw = false,
+    },
     picker = {
       win = {
         input = {

@@ -11,7 +11,6 @@ with the plugin list on different machines.
 List of "extras" that's definitely going to be shared across:
 
 ```
-"lazyvim.plugins.extras.coding.mini-surround",
 "lazyvim.plugins.extras.lang.markdown",
 ```
 
@@ -24,3 +23,9 @@ A lot of omarchy customization plugins are also placed in the gitignore:
 - lua/plugins/snacks-animated-scrolling-off.lua
 - lua/plugins/theme.lua
 - plugin/after/transparency.lua
+
+## TODOs:
+
+- [ ] Disable annoying snippets in markdown specifically, but across the board.
+      They bring too much clutter. Leave only my own personal stuff, or things I reviewed.
+- [ ] Add "copy file" and "archive and copy" file mini.files commands.
