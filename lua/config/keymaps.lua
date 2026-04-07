@@ -71,7 +71,13 @@ vim.keymap.set({ "n", "v", "o", "x" }, "<LocalLeader>d", '"_d', { desc = "Delete
 vim.keymap.set("n", "<leader>ue", function()
   if vim.lsp.is_enabled("codebook") then
     vim.lsp.enable("codebook", false)
-    vim.diagnostic.reset()
+    for i, v in pairs(vim.diagnostic.get_namespaces()) do
+      if vim.startswith(v.name, "nvim.lsp.codebook") then
+        -- we need to reset specific namespace to not break any other warning from LSP
+        vim.diagnostic.reset(i)
+        vim.diagnostic.hide(i)
+      end
+    end
     vim.notify("Disabled codebook", vim.log.levels.WARN, { title = "Spelling" })
   else
     vim.lsp.enable("codebook", true)
