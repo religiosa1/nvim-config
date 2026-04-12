@@ -18,8 +18,7 @@ vim.keymap.set("i", "<C-ц>", "<C-w>")
 -- Vim normally uses C-d in insert mode to decrease indent, but this conflicts with our delete binding
 -- So let's switch that to <C-y> which normally is a useless "Insert the character which is above the cursor."
 vim.keymap.set("i", "<C-y>", "<C-o><<", { silent = true })
--- for consistency with shell cursor jumps ctrl-a/ctrl-e in insert mode
-vim.keymap.set("i", "<C-a>", "<C-o>I", { silent = true })
+-- for consistency with shell cursor jumps ctrl-a/ctrl-e in insert mode vim.keymap.set("i", "<C-a>", "<C-o>I", { silent = true })
 vim.keymap.set("i", "<C-e>", "<C-o>A", { silent = true })
 vim.keymap.set("i", "<A-f>", "<C-o>w", { silent = true })
 vim.keymap.set("i", "<A-b>", "<C-o>b", { silent = true })
@@ -102,7 +101,18 @@ vim.keymap.set("v", "S", "gsa", { remap = true, desc = "Add surrounding" })
 vim.keymap.set("n", "<A-H>", "<cmd>BufferLineMovePrev<cr>")
 vim.keymap.set("n", "<A-L>", "<cmd>BufferLineMoveNext<cr>")
 vim.keymap.set("n", "<A-J>", "<cmd>BufferLinePick<cr>")
-
+-- bufferline shorter keymaps for buffer selection:
+vim.keymap.set("n", "gb", "<cmd>BufferLinePick<cr>", { desc = "Pick Buffer" })
+-- and "hydra" buffer pick close
+local function hydra_pick_close()
+  repeat
+    local before = #vim.fn.getbufinfo({ buflisted = 1 })
+    vim.cmd("BufferLinePickClose")
+    local after = #vim.fn.getbufinfo({ buflisted = 1 })
+  until after <= 1 or before == after
+end
+vim.keymap.set("n", "gB", hydra_pick_close, { desc = "Pick Close Buffer" })
+vim.keymap.set("n", "<Leader>bJ", hydra_pick_close, { desc = "Pick Close Buffer" })
 -- Fake group to be filled in with our inline plugins
 require("which-key").add({
   {
