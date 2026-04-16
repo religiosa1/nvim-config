@@ -23,10 +23,14 @@ if vim.fn.argc() == 0 then
 end
 -- Langmap for russian keybindings
 vim.opt.langmap = "ЙQ,йq,ЦW,цw,УE,уe,КR,кr,ЕT,еt,НY,нy,ГU,гu,ШI,шi,ЩO,щo,ЗP,зp,Х{,х[,Ъ},ъ],"
-    .. "ФA,фa,ЫS,ыs,ВD,вd,АF,аf,ПG,пg,РH,рh,ОJ,оj,ЛK,лk,ДL,дl,Ж:,ж\\;,Э\",э'"
-    .. "ЯZ,яz,ЧX,чx,СC,сc,МV,мv,ИB,иb,ТN,тn,ЬM,ьm,Б<,б\\,,Ю>,ю."
+  .. "ФA,фa,ЫS,ыs,ВD,вd,АF,аf,ПG,пg,РH,рh,ОJ,оj,ЛK,лk,ДL,дl,Ж:,ж\\;,Э\",э'"
+  .. "ЯZ,яz,ЧX,чx,СC,сc,МV,мv,ИB,иb,ТN,тn,ЬM,ьm,Б<,б\\,,Ю>,ю."
 
-vim.cmd('cnoreabbrev й q')
-vim.cmd('cnoreabbrev ц w')
-vim.cmd('cnoreabbrev у e')
-vim.cmd('cnoreabbrev k r')
+vim.cmd("cnoreabbrev й q")
+vim.cmd("cnoreabbrev ц w")
+vim.cmd("cnoreabbrev у e")
+vim.cmd("cnoreabbrev k r")
+
+-- vscode-style color markers (nvim v0.12+)
+-- vim.lsp.document_color.color_presentation() for switching between gex and rgb, etc
+vim.lsp.document_color.enable(true, nil, { style = "virtual" })
