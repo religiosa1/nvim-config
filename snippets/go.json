@@ -5,8 +5,19 @@
 		"body": ["panic(\"${1:Not implemented}\");"]
 	},
 	"if err != nil": {
-		"prefix": "ir",
-		"body": "if err != nil {\n\treturn ${1:nil}, ${2:err}\n}",
+		"prefix": "ie",
+		"body": "if ${1:err} != nil {\n\treturn ${1:err}\n}",
 		"description": "Snippet for if err != nil"
+	},
+
+	"if err != nil return value": {
+		"prefix": "ir",
+		"body": "if ${1:err} != nil {\n\treturn ${2:nil}, ${1:err}\n}",
+		"description": "Snippet for if err != nil"
+	},
+	"if err != nil in tests": {
+		"prefix": "it",
+		"description": "Snippet for if err != nil in tests",
+		"body": "if ${1:err} != nil {\n\tt.Errorf(\"$2: %s\", ${1:err})\n}"
 	}
 }
