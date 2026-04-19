@@ -24,8 +24,9 @@ vim.api.nvim_create_autocmd("FileType", {
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-  opts = function(_, opts)
-    vim.list_extend(opts.ensure_installed, { "janet_simple" })
-  end,
+    ft = "janet",
+    opts = function(_, opts)
+      vim.list_extend(opts.ensure_installed, { "janet_simple" })
+    end,
   },
 }

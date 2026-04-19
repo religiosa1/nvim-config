@@ -1,6 +1,14 @@
 return {
   "HiPhish/rainbow-delimiters.nvim",
   lazy = false,
+  init = function()
+    vim.g.rainbow_delimiters = {
+      condition = function(bufnr)
+        local ft = vim.bo[bufnr].filetype
+        return ft == "janet" or ft == "lisp"
+      end,
+    }
+  end,
   keys = {
     {
       "<leader>uP",
