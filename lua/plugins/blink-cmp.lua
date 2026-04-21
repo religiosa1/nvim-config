@@ -3,6 +3,9 @@ return {
     "saghen/blink.cmp",
     opts = {
       completion = {
+        trigger = {
+          show_on_insert_on_trigger_character = false,
+        },
         accept = {
           -- not entirely sure I like it, keeping it here for maybe disabling later
           auto_brackets = {
