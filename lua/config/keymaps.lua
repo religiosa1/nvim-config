@@ -87,9 +87,19 @@ end, { desc = "Toggle Codebook Sp[e]lling" })
 -- More sane exit terminal mode -- doesn't work on MacOS
 vim.keymap.set("t", "<C-Esc>", "<C-\\><C-n>", { remap = true, desc = "Exit terminal mode" })
 
--- scroll and center
--- vim.keymap.set("n", "<C-u>", "<C-u>zz", { remap = true })
--- vim.keymap.set("n", "<C-d>", "<C-d>zz", { remap = true })
+-- scroll and center (defer zz until after animate scroll animation)
+local function scroll_center(key)
+  return function()
+    local keys = vim.api.nvim_replace_termcodes(key, true, false, true)
+    vim.api.nvim_feedkeys(keys, "nx", false)
+    vim.defer_fn(function()
+      vim.cmd("normal! zz")
+    end, 150)
+  end
+end
+
+vim.keymap.set("n", "<C-u>", scroll_center("<C-u>"))
+vim.keymap.set("n", "<C-d>", scroll_center("<C-d>"))
 
 -- compatibility with vim-surround for mini.surrounding plugin
 vim.keymap.set("n", "ys", "gsa", { remap = true, desc = "Add surrounding" })
