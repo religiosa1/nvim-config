@@ -1,3 +1,6 @@
+local cyrillicLabels = "фывапролдйцукенгшщзячсмить"
+local allCyrillicLabels = cyrillicLabels .. vim.fn.toupper(cyrillicLabels)
+
 return {
   "folke/flash.nvim",
   opts = {
@@ -16,6 +19,22 @@ return {
     -- disable the default flash keymap
     { "s", mode = { "n", "x", "o" }, false },
     -- enabling it only for normal mode, so it doesn't conflict with ys from mini.surround
-    { "s", mode = { "n" },           function() require("flash").jump() end, desc = "Flash" },
-  }
+    {
+      "s",
+      mode = { "n" },
+      function()
+        require("flash").jump()
+      end,
+      desc = "Flash",
+    },
+    -- cyrillic flash
+    {
+      "ы",
+      mode = { "n" },
+      function()
+        require("flash").jump({ labels = allCyrillicLabels })
+      end,
+      desc = "Flash",
+    },
+  },
 }
