@@ -1,6 +1,12 @@
 vim.filetype.add({
   extension = { janet = "janet", jdn = "janet" },
 })
+vim.keymap.set("v", "<localleader>c", function()
+  local region = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."))
+  local input = table.concat(region, "\n")
+  local output = vim.fn.system("janet -q", input)
+  vim.notify(output)
+end, { desc = "Run Janet Selection" })
 
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "janet",
@@ -17,7 +23,12 @@ vim.api.nvim_create_autocmd("FileType", {
           vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
         end)
       end)
-    end, { buffer = ev.buf, desc = "Run Janet file" })
+    end, { buffer = ev.buf, desc = "Run current file with janet" })
+
+    vim.keymap.set("n", "<localleader>c", function()
+      local output = vim.fn.system("janet -q", ev.buf)
+      vim.notify(output)
+    end, { buffer = ev.buf, desc = "Run Janet Snippet" })
   end,
 })
 
