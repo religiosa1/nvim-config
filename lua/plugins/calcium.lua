@@ -7,7 +7,7 @@ return {
   opts = {
     default_mode = "replace",
   },
-  init = function(_, opts)
+  init = function()
     require("which-key").add({
       { "<leader>=", icon = { icon = "", color = "yellow" } },
     })
@@ -18,7 +18,61 @@ return {
       "<cmd>Calcium replace<CR>",
       desc = "Calculate",
       mode = { "n", "v" },
-      icon = { cat = "extension", name = "md" },
+    },
+    {
+      "<leader>+",
+      function()
+        local title = "stats"
+        local region = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."), { type = vim.fn.mode() })
+        local input = table.concat(region, "\n")
+        local numbers = {}
+        for token in input:gmatch("[^%s,\"'`%[%]{}()=:;]+") do
+          local num = tonumber(token)
+          if num ~= nil then
+            table.insert(numbers, num)
+          end
+        end
+        if #numbers == 0 then
+          vim.notify("no numbers found", vim.log.levels.WARN, { title = title })
+          return
+        end
+        table.sort(numbers)
+        local min = numbers[1]
+        local max = numbers[#numbers]
+
+        local mid = math.floor(#numbers / 2)
+        local median
+        if #numbers % 2 == 0 then
+          median = (numbers[mid] + numbers[mid + 1]) / 2
+        else
+          median = numbers[mid + 1]
+        end
+
+        -- The Welford online algorithm for mean/average accumulation and variance
+        -- https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
+        -- enumerate used to get index, which given 1-based indexing is also the count
+        local mean, m2 = 0, 0
+        for n, x in ipairs(numbers) do
+          local delta = x - mean
+          mean = mean + delta / n
+          m2 = m2 + delta * (x - mean)
+        end
+        local variance = m2 / #numbers
+        local stddev = math.sqrt(variance)
+        local fmt = function(x)
+          return string.format("%.10g", x)
+        end
+        local msg = table.concat({
+          "min = " .. fmt(min),
+          "max = " .. fmt(max),
+          "avg = " .. fmt(mean),
+          "med = " .. fmt(median),
+          "std = " .. fmt(stddev),
+        }, "\n")
+        vim.notify(msg, vim.log.levels.INFO, { title = title })
+      end,
+      desc = "avg/min/max",
+      mode = { "v" },
     },
   },
 }
