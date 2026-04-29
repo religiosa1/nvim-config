@@ -2,7 +2,7 @@ vim.filetype.add({
   extension = { janet = "janet", jdn = "janet" },
 })
 vim.keymap.set("v", "<localleader>c", function()
-  local region = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."))
+  local region = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."), { type = vim.fn.mode() })
   local input = table.concat(region, "\n")
   local output = vim.fn.system("janet -q", input)
   vim.notify(output)
@@ -15,7 +15,7 @@ vim.api.nvim_create_autocmd("FileType", {
       local file = vim.api.nvim_buf_get_name(ev.buf)
       vim.system({ "janet", file }, { text = true }, function(result)
         local output = (result.stdout or "") .. (result.stderr or "")
-        local lines = vim.split(output, "\n", { trimempty = true })
+        local lines = vim.split(output, "\n", { trimempty = false })
         vim.schedule(function()
           vim.cmd("botright split")
           local buf = vim.api.nvim_create_buf(false, true)
