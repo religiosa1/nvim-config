@@ -4,19 +4,28 @@
 		"description": "Panic with Not Implemented error",
 		"body": ["panic(\"${1:Not implemented}\");"]
 	},
-	"if err != nil": {
+	"if err != nil return err": {
 		"prefix": "ie",
 		"body": "if ${1:err} != nil {\n\treturn ${1:err}\n}",
-		"description": "Snippet for if err != nil"
+		"description": "Snippet for if err != nil without value"
 	},
-
-	"if err != nil return value": {
+	"if err != nil return nil": {
+		"prefix": "ien",
+		"body": "if ${1:err} != nil {\n\treturn ${1:err}\n}",
+		"description": "Snippet for if err != nil return nil"
+	},
+	"if err != nil return value,err": {
 		"prefix": "ir",
 		"body": "if ${1:err} != nil {\n\treturn ${2:nil}, ${1:err}\n}",
-		"description": "Snippet for if err != nil"
+		"description": "Snippet for if err != nil with value"
 	},
-	"if err != nil in tests": {
+	"if err != nil t.Fatalf()": {
 		"prefix": "it",
+		"description": "Snippet for if err != nil in tests",
+		"body": "if ${1:err} != nil {\n\tt.Fatalf(\"$2: %s\", ${1:err})\n}"
+	},
+	"if err != nil t.Errorf()": {
+		"prefix": "ite",
 		"description": "Snippet for if err != nil in tests",
 		"body": "if ${1:err} != nil {\n\tt.Errorf(\"$2: %s\", ${1:err})\n}"
 	}
