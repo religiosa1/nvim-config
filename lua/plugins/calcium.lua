@@ -26,7 +26,7 @@ return {
         local region = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."), { type = vim.fn.mode() })
         local input = table.concat(region, "\n")
         local numbers = {}
-        for token in input:gmatch("[^%s,\"'`%[%]{}()=:;]+") do
+        for token in input:gmatch("[^%sa-zA-Z,\"'`%[%]{}()=:;]+") do
           local num = tonumber(token)
           if num ~= nil then
             table.insert(numbers, num)
@@ -50,7 +50,6 @@ return {
 
         -- The Welford online algorithm for mean/average accumulation and variance
         -- https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
-        -- enumerate used to get index, which given 1-based indexing is also the count
         local mean, m2 = 0, 0
         for n, x in ipairs(numbers) do
           local delta = x - mean
