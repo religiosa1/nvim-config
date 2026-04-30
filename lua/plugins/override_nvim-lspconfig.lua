@@ -1,6 +1,11 @@
 return {
   "neovim/nvim-lspconfig",
   opts = {
+    -- disabling inlay hints by default, still can be toggled with <leader>uh
+    inlay_hints = {
+      enabled = false,
+      -- exclude = { "vue" }, -- filetypes for which you don't want to enable inlay hints
+    },
     servers = {
       marksman = {
         enabled = false,
@@ -35,13 +40,13 @@ return {
             buffer = bufnr,
             callback = function()
               if codelens_supported(bufnr) then
-                vim.lsp.codelens.refresh({ bufnr = bufnr })
+                vim.lsp.codelens.enable(true, { bufnr = bufnr })
               end
             end,
           })
 
           if codelens_supported(bufnr) then
-            vim.lsp.codelens.refresh({ bufnr = bufnr })
+            vim.lsp.codelens.enable(true, { bufnr = bufnr })
           end
         end,
       },
