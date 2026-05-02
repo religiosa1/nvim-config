@@ -41,9 +41,46 @@ local function yankRelativePath()
   vim.fn.setreg("+", relative_path)
   vim.notify(relative_path, vim.log.levels.INFO, { title = "Copied file name", ft = "text" })
 end
-vim.keymap.set("n", "<C-s>", yankRelativePath, { desc = "Copy relative path to clipboard" })
+vim.keymap.set("n", "<C-s>", yankRelativePath, { desc = "Copy relative path" })
 vim.keymap.set("n", "<C-ы>", yankRelativePath)
 
+vim.keymap.set("n", "<leader>l", yankRelativePath, { desc = "Copy relative path" })
+-- Copy relative filename and pos
+vim.keymap.set("v", "<leader>l", function()
+  local relative_path = vim.fn.expand("%:.")
+  local mode = vim.fn.mode()
+  local pos = vim.fn.getregionpos(vim.fn.getpos("v"), vim.fn.getpos("."), { type = mode })
+  ---@type [integer, integer, integer, integer] | nil, [integer, integer, integer, integer] | nil
+  local start_pos, end_pos
+  if #pos > 0 then
+    start_pos = pos[1][1]
+    end_pos = pos[#pos][2]
+  end
+  local range = ""
+  if start_pos ~= nil and end_pos ~= nil then
+    if mode == "V" then
+      if start_pos[2] ~= end_pos[2] then
+        range = string.format("%d-%d", start_pos[2], end_pos[2])
+      else
+        range = string.format("%d", start_pos[2])
+      end
+    elseif mode == "v" then
+      if start_pos[2] ~= end_pos[2] or start_pos[3] ~= end_pos[3] then
+        range = string.format("%d:%d-%d:%d", start_pos[2], start_pos[3], end_pos[2], end_pos[3])
+      else
+        range = string.format("%d:%d", start_pos[2], end_pos[3])
+      end
+    end
+  end
+
+  local output = range ~= "" and (relative_path .. ":" .. range) or relative_path
+  vim.fn.setreg("+", output)
+  vim.notify(output, vim.log.levels.INFO, { title = "Copied position", ft = "text" })
+  local keys = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
+  vim.api.nvim_feedkeys(keys, "nx", false)
+end, {
+  desc = "Copy filename:linenumber",
+})
 -- A lot of stuff for cut/paste without register
 vim.keymap.set("v", "<leader>p", "pgvy", { desc = "Paste w/o clipboard" })
 
