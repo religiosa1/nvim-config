@@ -5,10 +5,9 @@ vim.keymap.set("n", "<leader>uW", function()
   vim.o.list = not vim.o.list
 end, { desc = "Toggle whitespace display" })
 
-vim.keymap.set("n", "<leader>bm", function()
-  vim.cmd("enew")
-  vim.bo.filetype = "markdown"
-end, { desc = "Open new markdown buffer" })
+-- move record macro to <C-q> from just q, as I apparently constantly hit q by accident
+vim.keymap.set("n", "<C-q>", "q", { noremap = true, desc = "Record macro" })
+vim.keymap.set("n", "q", "<nop>", { noremap = true })
 
 vim.keymap.set("i", "<C-в>", "<Delete>")
 vim.keymap.set("i", "<C-d>", "<Delete>", { desc = "Delete forward" })
