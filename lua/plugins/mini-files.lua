@@ -110,6 +110,18 @@ return {
             vim.notify("No file or directory selected", vim.log.levels.WARN)
           end
         end, { buffer = buf_id, desc = "Open in the system app" })
+
+        -- reuse "open definition in VSplit" from our regular keymap in mini.files to open file in a VSplit
+        vim.keymap.set("n", "g<C-v>", function()
+          local curr_entry = MiniFiles.get_fs_entry()
+          if curr_entry ~= nil and curr_entry.path then
+            local keys = vim.api.nvim_replace_termcodes("<C-w>v", true, false, true)
+            vim.api.nvim_feedkeys(keys, "nx", false)
+            vim.cmd.edit(curr_entry.path)
+          else
+            vim.notify("No file or directory selected", vim.log.levels.WARN)
+          end
+        end, { buffer = buf_id, desc = "Open file in VSplit" })
       end,
     })
   end,

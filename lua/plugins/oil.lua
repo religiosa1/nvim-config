@@ -26,7 +26,7 @@ return {
         q = { float_only_close, mode = "n", desc = "Close float window" },
         ["<Esc>"] = { float_only_close, mode = "n", desc = "Close float window" },
         ["<C-s>"] = false,
-        ["<C-v>"] = { "actions.select", opts = { vertical = true } },
+        ["g<C-v>"] = { "actions.select", opts = { vertical = true }, desc = "Open file in VSplit" },
       },
       view_options = {
         show_hidden = true,
