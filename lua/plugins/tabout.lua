@@ -1,7 +1,7 @@
 return {
   {
     "abecodes/tabout.nvim",
-    disable = true,
+    disabled = false,
     lazy = false,
     config = function()
       require("tabout").setup({
@@ -20,6 +20,7 @@ return {
           { open = "(", close = ")" },
           { open = "[", close = "]" },
           { open = "{", close = "}" },
+          { open = "<", close = ">" },
         },
         ignore_beginning = true, --[[ if the cursor is at the beginning of a filled element it will rather tab out than shift the content ]]
         exclude = {}, -- tabout will ignore these filetypes
