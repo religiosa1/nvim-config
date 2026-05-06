@@ -1,3 +1,7 @@
+-- Configuration for janet language.
+-- see also ./rainbow.lua
+-- https://janet-lang.org/
+
 vim.filetype.add({
   extension = { janet = "janet", jdn = "janet" },
 })
