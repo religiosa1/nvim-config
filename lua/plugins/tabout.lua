@@ -2,7 +2,7 @@ return {
   {
     "abecodes/tabout.nvim",
     disabled = false,
-    lazy = false,
+    event = "VeryLazy", -- repo recommends "InsertCharPre", but we want to save up on load time
     config = function()
       require("tabout").setup({
         tabkey = "<Tab>", -- key to trigger tabout, set to an empty string to disable
@@ -32,7 +32,6 @@ return {
       -- "hrsh7th/nvim-cmp"
     },
     opt = true, -- Set this to true if the plugin is optional
-    event = "InsertCharPre", -- Set the event to 'InsertCharPre' for better compatibility
     priority = 1000,
   },
 }

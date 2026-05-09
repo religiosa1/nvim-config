@@ -1,6 +1,6 @@
 return {
   "nvim-mini/mini.files",
-  lazy = false,
+  lazy = true,
   opts = function(_, opts)
     opts.mappings = vim.tbl_deep_extend("force", opts.mappings or {}, {
       -- default is "@"

@@ -2,6 +2,7 @@ return {
   "folke/snacks.nvim",
   ---@type snacks.Config
   opts = {
+    statuscolumn = { refresh = 150 }, -- ms; default is fast
     image = {
       -- Plugin is disabled by default, so no inline rending is there in markdown
       enabled = true,
