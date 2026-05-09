@@ -10,9 +10,6 @@ vim.opt.listchars = {
 }
 vim.opt.cc = "80,120,140"
 
-vim.opt_local.wrap = true
-vim.opt_local.spell = true
-
 -- setting terminal tab title
 vim.opt.title = true
 -- the most important part to avoid confusion -- when launching in just
@@ -30,7 +27,3 @@ vim.cmd("cnoreabbrev й q")
 vim.cmd("cnoreabbrev ц w")
 vim.cmd("cnoreabbrev у e")
 vim.cmd("cnoreabbrev k r")
-
--- vscode-style color markers (nvim v0.12+)
--- vim.lsp.document_color.color_presentation() for switching between gex and rgb, etc
-vim.lsp.document_color.enable(true, nil, { style = "virtual" })

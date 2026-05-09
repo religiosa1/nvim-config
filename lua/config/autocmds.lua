@@ -17,3 +17,13 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.wrap = true
   end,
 })
+
+-- vscode-style color markers (nvim v0.12+)
+-- vim.lsp.document_color.color_presentation() for switching between gex and rgb, etc
+-- Doing it in autocmd to avoid eagerly loading the full LSP thing
+vim.api.nvim_create_autocmd("LspAttach", {
+  once = true,
+  callback = function()
+    vim.lsp.document_color.enable(true, nil, { style = "virtual" })
+  end,
+})
