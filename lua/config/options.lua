@@ -9,6 +9,8 @@ vim.opt.listchars = {
   trail = "·",
 }
 vim.opt.cc = "80,120,140"
+vim.opt.expandtab = false
+vim.opt.smartindent = false -- relying on the treesitter indent instead
 
 -- setting terminal tab title
 vim.opt.title = true
