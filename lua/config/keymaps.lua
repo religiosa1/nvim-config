@@ -24,7 +24,7 @@ vim.keymap.set("i", "<A-f>", "<C-o>w", { silent = true })
 vim.keymap.set("i", "<A-b>", "<C-o>b", { silent = true })
 
 -- Go To definition in a vertical split
-vim.keymap.set("n", "g<C-v>", "<C-w>vgd<CR>", { desc = "Go to definition in Vsplit" })
+vim.keymap.set("n", "g<C-v>", "<C-w>v:lua Snacks.picker.lsp_definitions()<CR>", { desc = "Go to definition in Vsplit" })
 
 -- Extended default <C-g>: also yanking the filename
 local function yankAboslutePath()
