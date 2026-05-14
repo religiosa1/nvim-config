@@ -9,15 +9,20 @@
 		"body": "if ${1:err} != nil {\n\treturn ${1:err}\n}",
 		"description": "Snippet for if err != nil without value"
 	},
-	"if err != nil return nil": {
-		"prefix": "ien",
-		"body": "if ${1:err} != nil {\n\treturn ${1:err}\n}",
-		"description": "Snippet for if err != nil return nil"
+	"if err != nil return fmt.Error()": {
+		"prefix": "ief",
+		"body": "if ${1:err} != nil {\n\treturn fmt.Errorf(\"$2: %w\", ${1:err})\n}",
+		"description": "Snippet for if err != nil without value"
 	},
 	"if err != nil return value,err": {
-		"prefix": "ir",
+		"prefix": ["if err != nil", "ier"],
 		"body": "if ${1:err} != nil {\n\treturn ${2:nil}, ${1:err}\n}",
 		"description": "Snippet for if err != nil with value"
+	},
+	"if err != nil return nil": {
+		"prefix": "ien",
+		"body": "if ${1:err} != nil {\n\treturn nil\n}",
+		"description": "Snippet for if err != nil return nil"
 	},
 	"if err != nil t.Fatalf()": {
 		"prefix": "it",
@@ -28,5 +33,15 @@
 		"prefix": "ite",
 		"description": "Snippet for if err != nil in tests",
 		"body": "if ${1:err} != nil {\n\tt.Errorf(\"$2: %s\", ${1:err})\n}"
+	},
+	"go func(){}()": {
+		"prefix": ["go func()", "gf"],
+		"description": "go iife",
+		"body": "go func() {\n\t$1\n}()"
+	},
+	"defer func(){}()": {
+		"prefix": ["defer func()", "df"],
+		"description": "defer iife",
+		"body": "defer func() {\n\t$1\n}()"
 	}
 }
