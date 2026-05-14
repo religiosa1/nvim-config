@@ -36,6 +36,15 @@ return {
           { "<leader>y", group = "Yank file path", buffer = buf_id },
         })
 
+        -- syncing on save
+        vim.bo[buf_id].buftype = "acwrite"
+        vim.api.nvim_create_autocmd("BufWriteCmd", {
+          buffer = buf_id,
+          callback = function()
+            MiniFiles.synchronize()
+          end,
+        })
+
         local function copy_file_path(args)
           local curr_entry = MiniFiles.get_fs_entry()
           if curr_entry then
