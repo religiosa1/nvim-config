@@ -17,7 +17,7 @@ return {
       "<leader>=",
       "<cmd>Calcium replace<CR>",
       desc = "Calculate",
-      mode = { "n", "v" },
+      mode = { "n", "x" },
     },
     {
       "<leader>+",
@@ -71,7 +71,7 @@ return {
         vim.notify(msg, vim.log.levels.INFO, { title = title })
       end,
       desc = "avg/min/max",
-      mode = { "v" },
+      mode = { "x" },
     },
   },
 }

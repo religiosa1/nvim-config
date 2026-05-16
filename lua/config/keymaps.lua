@@ -5,6 +5,9 @@ vim.keymap.set("n", "<leader>uW", function()
   vim.o.list = not vim.o.list
 end, { desc = "Toggle whitespace display" })
 
+-- $ in visual mode is stupid, as it selects trailing CR, as well. remapping to g_
+vim.keymap.set("x", "$", "g_")
+
 -- move record macro to <C-q> from just q, as I apparently constantly hit q by accident
 vim.keymap.set("n", "<C-q>", "q", { noremap = true, desc = "Record macro" })
 vim.keymap.set("n", "q", "<nop>", { noremap = true })
@@ -45,7 +48,7 @@ vim.keymap.set("n", "<C-s>", yankRelativePath, { desc = "Copy relative path" })
 vim.keymap.set("n", "<C-ы>", yankRelativePath)
 
 -- Copy relative filename and pos
-vim.keymap.set({ "n", "v" }, "<leader>l", function()
+vim.keymap.set({ "n", "x" }, "<leader>l", function()
   local relative_path = vim.fn.expand("%:.")
   local mode = vim.fn.mode()
   local output = relative_path
@@ -87,7 +90,7 @@ end, {
   desc = "Copy filename:linenumber",
 })
 -- A lot of stuff for cut/paste without register
-vim.keymap.set("v", "<leader>p", "pgvy", { desc = "Paste w/o clipboard" })
+vim.keymap.set("x", "<leader>p", "pgvy", { desc = "Paste w/o clipboard" })
 
 function ReplaceWithRegister(type)
   if type == "char" then
@@ -105,8 +108,8 @@ end, { expr = true, desc = "Replace with register" })
 vim.keymap.set("n", "gRR", '"_ddP', { desc = "Replace line" })
 vim.keymap.set("x", "gR", '"_dP', { desc = "Replace with register" })
 
-vim.keymap.set({ "v" }, "x", '"_d', { desc = "Delete to blackhole" })
-vim.keymap.set({ "n", "v", "o", "x" }, "<LocalLeader>d", '"_d', { desc = "Delete to blackhole" })
+vim.keymap.set("x", "x", '"_d', { desc = "Delete to blackhole" })
+vim.keymap.set({ "n", "v", "o" }, "<LocalLeader>d", '"_d', { desc = "Delete to blackhole" })
 
 -- Cookbook spell checks toggle
 vim.keymap.set("n", "<leader>ue", function()
@@ -128,7 +131,6 @@ end, { desc = "Toggle Codebook Sp[e]lling" })
 
 -- More sane exit terminal mode -- doesn't work on MacOS
 vim.keymap.set("t", "<C-Esc>", "<C-\\><C-n>", { remap = true, desc = "Exit terminal mode" })
-
 -- scroll and center (defer zz until after animate scroll animation)
 local function scroll_center(key)
   return function()
@@ -147,7 +149,7 @@ vim.keymap.set("n", "<C-d>", scroll_center("<C-d>"))
 vim.keymap.set("n", "ys", "gsa", { remap = true, desc = "Add surrounding" })
 vim.keymap.set("n", "ds", "gsd", { remap = true, desc = "Delete surrounding" })
 vim.keymap.set("n", "cs", "gsr", { remap = true, desc = "Replace surrounding" })
-vim.keymap.set("v", "S", "gsa", { remap = true, desc = "Add surrounding" })
+vim.keymap.set("x", "S", "gsa", { remap = true, desc = "Add surrounding" })
 
 -- Bufferline move buffers around and a shorter "pick buffer"
 vim.keymap.set("n", "<A-H>", "<cmd>BufferLineMovePrev<cr>")
@@ -170,7 +172,7 @@ require("which-key").add({
   {
     "<leader>j",
     group = "Editing actions",
-    mode = { "n", "v" },
+    mode = { "n", "x" },
     icon = { cat = "extension", name = "txt" },
   },
 })

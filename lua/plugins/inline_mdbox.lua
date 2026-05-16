@@ -36,7 +36,7 @@ return {
       "<leader>jt",
       ":<C-u>'<,'>CleanBoxChars<CR>",
       desc = "Clean out box-drawing characters",
-      mode = { "v" },
+      mode = { "x" },
     },
   },
 }

@@ -14,7 +14,7 @@ return {
         require("treesj").toggle()
       end,
       desc = "block of code toggle split/join",
-      mode = { "n", "v" },
+      mode = { "n", "x" },
     },
     {
       "<leader>jJ",
@@ -22,7 +22,7 @@ return {
         require("treesj").join()
       end,
       desc = "block of code join",
-      mode = { "n", "v" },
+      mode = { "n", "x" },
     },
     {
       "<leader>js",
@@ -30,7 +30,7 @@ return {
         require("treesj").split()
       end,
       desc = "block of code split",
-      mode = { "n", "v" },
+      mode = { "n", "x" },
     },
   },
 }

@@ -6,25 +6,25 @@ return {
       {
         "<localleader>w",
         "<cmd>lua require('spider').motion('w')<CR>",
-        mode = { "n", "o", "x", "v" },
+        mode = { "n", "o", "x" },
         desc = "Spider Word",
       },
       {
         "<localleader>e",
         "<cmd>lua require('spider').motion('e')<CR>",
-        mode = { "n", "o", "x", "v" },
+        mode = { "n", "o", "x" },
         desc = "Spider End",
       },
       {
         "g<localleader>e",
         "<cmd>lua require('spider').motion('ge')<CR>",
-        mode = { "n", "o", "x", "v" },
+        mode = { "n", "o", "x" },
         desc = "Spider Previous End",
       },
       {
         "<localleader>b",
         "<cmd>lua require('spider').motion('b')<CR>",
-        mode = { "n", "o", "x", "v" },
+        mode = { "n", "o", "x" },
         desc = "Spider Back",
       },
       -- In operator pending mode, we're allowing spider motions with a simple leader as well for convenience

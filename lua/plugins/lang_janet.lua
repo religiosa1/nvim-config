@@ -5,7 +5,7 @@
 vim.filetype.add({
   extension = { janet = "janet", jdn = "janet" },
 })
-vim.keymap.set("v", "<localleader>c", function()
+vim.keymap.set("x", "<localleader>c", function()
   local region = vim.fn.getregion(vim.fn.getpos("v"), vim.fn.getpos("."), { type = vim.fn.mode() })
   local input = table.concat(region, "\n")
   local output = vim.fn.system("janet -q", input)
