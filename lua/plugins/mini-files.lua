@@ -5,11 +5,12 @@ return {
     opts.mappings = vim.tbl_deep_extend("force", opts.mappings or {}, {
       -- default is "@"
       reveal_cwd = ";",
-      -- default is "="
-      synchronize = "<CR>",
+      -- default is "=",
+      -- commenting out, let's keep the default =, the main way is to write buf for me.
+      -- synchronize = "<CR>",
     })
     -- Whether to use for editing directories.
-    -- I disabled snacks.explorer, neovim is also diasbled, meaning we're actually
+    -- I disabled snacks.explorer, neovim is also disabled, meaning we're actually
     -- falling back to netrw
     -- opts.options = vim.tbl_deep_extend("force", opts.options or {}, {
     --   use_as_default_explorer = false,
@@ -35,6 +36,13 @@ return {
         require("which-key").add({
           { "<leader>y", group = "Yank file path", buffer = buf_id },
         })
+
+        -- enter is also "go_in_plus", in addition to the default "L"
+        vim.keymap.set("n", "<cr>", function()
+          MiniFiles.go_in({
+            close_on_file = true,
+          })
+        end, { buffer = buf_id, desc = "Yank relative file path" })
 
         -- syncing on save
         vim.bo[buf_id].buftype = "acwrite"
