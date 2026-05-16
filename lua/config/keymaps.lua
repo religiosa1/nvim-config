@@ -154,7 +154,12 @@ vim.keymap.set("x", "S", "gsa", { remap = true, desc = "Add surrounding" })
 -- Bufferline move buffers around and a shorter "pick buffer"
 vim.keymap.set("n", "<A-H>", "<cmd>BufferLineMovePrev<cr>")
 vim.keymap.set("n", "<A-L>", "<cmd>BufferLineMoveNext<cr>")
-vim.keymap.set("n", "<A-J>", "<cmd>BufferLinePick<cr>")
+-- Cyrillic versions of that
+vim.keymap.set("n", "<A-Р>", "<cmd>BufferLineMovePrev<cr>")
+vim.keymap.set("n", "<A-Д>", "<cmd>BufferLineMoveNext<cr>")
+-- And to move around
+vim.keymap.set("n", "Р", "<cmd>BufferLineCyclePrev<cr>")
+vim.keymap.set("n", "Д", "<cmd>BufferLineCycleNext<cr>")
 -- bufferline shorter keymaps for buffer selection:
 vim.keymap.set("n", "gb", "<cmd>BufferLinePick<cr>", { desc = "Pick Buffer" })
 -- and "hydra" buffer pick close
