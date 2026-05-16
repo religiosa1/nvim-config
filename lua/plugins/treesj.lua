@@ -9,7 +9,7 @@ return {
   end,
   keys = {
     {
-      "<leader>jm",
+      "<leader>jj",
       function()
         require("treesj").toggle()
       end,
@@ -17,7 +17,7 @@ return {
       mode = { "n", "v" },
     },
     {
-      "<leader>jj",
+      "<leader>jJ",
       function()
         require("treesj").join()
       end,
