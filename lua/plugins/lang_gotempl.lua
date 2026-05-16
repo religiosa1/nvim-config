@@ -15,7 +15,10 @@ vim.api.nvim_create_autocmd("FileType", {
 return {
   {
     "vrischmann/tree-sitter-templ",
-    build = ":TSUpdate templ",
+    build = function()
+      local ts = require("nvim-treesitter")
+      ts.update()
+    end,
   },
   {
     "neovim/nvim-lspconfig",
