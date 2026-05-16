@@ -21,7 +21,19 @@ return {
           },
         }
       ),
-      on_attach = function(_client, bufnr)
+      on_attach = function(client, bufnr)
+          -- normalize vim.NIL scheme values so mini.files doesn't crash on sync
+          local file_ops = vim.tbl_get(client, "server_capabilities", "workspace", "fileOperations")
+          if file_ops then
+            for _, method_filters in pairs(file_ops) do
+              if type(method_filters) == "table" and method_filters.filters then
+                for _, fc in ipairs(method_filters.filters) do
+                  if fc.scheme == vim.NIL then fc.scheme = nil end
+                end
+              end
+            end
+          end
+
           local function codelens_supported(bufnr)
             for _, c in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
               if c.server_capabilities and c.server_capabilities.codeLensProvider then
