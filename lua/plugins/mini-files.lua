@@ -6,8 +6,7 @@ return {
       -- default is "@"
       reveal_cwd = ";",
       -- default is "=",
-      -- commenting out, let's keep the default =, the main way is to write buf for me.
-      -- synchronize = "<CR>",
+      synchronize = "<CR>",
     })
     -- Whether to use for editing directories.
     -- I disabled snacks.explorer, neovim is also disabled, meaning we're actually
@@ -33,16 +32,17 @@ return {
         local MiniFiles = require("mini.files")
         local buf_id = args.data.buf_id
 
-        require("which-key").add({
+        require("which-key").add {
           { "<leader>y", group = "Yank file path", buffer = buf_id },
-        })
+        }
 
+        -- apparently, I'm too used to enter being sync now.
         -- enter is also "go_in_plus", in addition to the default "L"
-        vim.keymap.set("n", "<cr>", function()
-          MiniFiles.go_in({
-            close_on_file = true,
-          })
-        end, { buffer = buf_id, desc = "Yank relative file path" })
+        -- vim.keymap.set("n", "<cr>", function()
+        --   MiniFiles.go_in({
+        --     close_on_file = true,
+        --   })
+        -- end, { buffer = buf_id, desc = "Yank relative file path" })
 
         -- syncing on save
         vim.bo[buf_id].buftype = "acwrite"
@@ -78,12 +78,12 @@ return {
         end
 
         vim.keymap.set("n", "<leader>yy", function()
-          copy_file_path({
+          copy_file_path {
             name = function(abs_path)
               return vim.fn.fnamemodify(abs_path, ":.")
             end,
             title = "Relative path copied to register",
-          })
+          }
         end, { buffer = buf_id, desc = "Yank relative file path" })
 
         vim.keymap.set("n", "<leader>yY", function()
@@ -96,10 +96,10 @@ return {
           local preview_next = not preview
           MiniFiles.config.windows.preview = preview_next
           MiniFiles.trim_right()
-          MiniFiles.refresh({
+          MiniFiles.refresh {
             -- NOTE: Should be explicitly set
             windows = { preview = preview_next },
-          })
+          }
           -- NOTE: Should be called after `MiniFiles.refresh`
           if preview then
             local branch = MiniFiles.get_explorer_state().branch
