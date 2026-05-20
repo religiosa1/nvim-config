@@ -33,7 +33,6 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = { "grug-far" },
   callback = function(args)
     local buf_id = args.buf
-
     -- we need to schedule, as grug-far sets the option to none on buf setup
     vim.schedule(function()
       vim.bo[buf_id].buftype = "acwrite"
@@ -45,7 +44,17 @@ vim.api.nvim_create_autocmd("FileType", {
       vim.api.nvim_create_autocmd("BufWriteCmd", {
         buffer = buf_id,
         callback = function()
-          require("grug-far").get_instance(0):sync_all()
+          -- checking we're in the grug-far buffer, so it won't randomly sync on :wall
+          if vim.api.nvim_get_current_buf() == buf_id then
+            require("grug-far").get_instance(0):sync_all()
+          end
+          vim.bo[buf_id].modified = false
+        end,
+      })
+      -- dropping "modified" flag back on every change, so neovim doesn't bother me with confirmations
+      vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+        buffer = buf_id,
+        callback = function()
           vim.bo[buf_id].modified = false
         end,
       })
