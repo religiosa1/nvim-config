@@ -21,6 +21,7 @@ return {
           gs.nav_hunk("next", { target = target })
         end
       end, "Next Hunk")
+
       map("n", "[h", function()
         if vim.wo.diff then
           vim.cmd.normal({ "[c", bang = true })
@@ -28,7 +29,8 @@ return {
           gs.nav_hunk("prev", { target = target })
         end
       end, "Prev Hunk")
-      map("n", "<leader>ght", function()
+
+     map("n", "<leader>ght", function()
         if target == "all" then
           target = "unstaged"
         else
@@ -36,11 +38,13 @@ return {
         end
         vim.notify(target, vim.log.levels.INFO, { title = "Git Hunks navigation" })
       end, "Toggle hunks nav type")
+
       map("n", "]H", function() gs.nav_hunk("last", { target = "all" }) end, "Last Hunk")
       map("n", "[H", function() gs.nav_hunk("first", { target = "all" }) end, "First Hunk")
       map({ "n", "x" }, "<leader>ghs", ":Gitsigns stage_hunk<CR>", "Stage Hunk")
       map({ "n", "x" }, "<leader>ghr", ":Gitsigns reset_hunk<CR>", "Reset Hunk")
-      map("n", "<leader>ghS", gs.stage_buffer, "Stage Buffer")
+      -- default is ghS
+      map("n", "<leader>gha", gs.stage_buffer, "Stage (git add) Buffer")
       map("n", "<leader>ghu", gs.undo_stage_hunk, "Undo Stage Hunk")
       map("n", "<leader>ghR", gs.reset_buffer, "Reset Buffer")
       map("n", "<leader>ghp", gs.preview_hunk_inline, "Preview Hunk Inline")
