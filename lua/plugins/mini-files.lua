@@ -2,6 +2,7 @@ return {
   "nvim-mini/mini.files",
   lazy = true,
   opts = function(_, opts)
+    -- default config: https://github.com/nvim-mini/mini.files#default-config
     opts.mappings = vim.tbl_deep_extend("force", opts.mappings or {}, {
       -- default is "@"
       reveal_cwd = ";",
@@ -76,6 +77,8 @@ return {
             )
           end
         end
+
+        vim.keymap.set("n", "<esc><esc>", MiniFiles.close, { buffer = buf_id, desc = "Close" })
 
         vim.keymap.set("n", "<leader>yy", function()
           copy_file_path {
