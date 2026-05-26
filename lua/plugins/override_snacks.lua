@@ -2,6 +2,29 @@ return {
   "folke/snacks.nvim",
   ---@type snacks.Config
   opts = {
+    styles = {
+      lazygit = {
+        keys = {
+          -- Override double-escape: hide lazygit instead of entering normal mode
+          term_normal = {
+            "<esc>",
+            function(self)
+              self.esc_timer = self.esc_timer or (vim.uv or vim.loop).new_timer()
+              if self.esc_timer:is_active() then
+                self.esc_timer:stop()
+                self:hide()
+              else
+                self.esc_timer:start(200, 0, function() end)
+                return "<esc>"
+              end
+            end,
+            mode = "t",
+            expr = true,
+            desc = "Double escape to close lazygit",
+          },
+        },
+      },
+    },
     statuscolumn = { refresh = 150 }, -- ms; default is fast
     image = {
       -- Plugin is disabled by default, so no inline rending is there in markdown
