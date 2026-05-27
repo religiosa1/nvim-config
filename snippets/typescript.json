@@ -7,6 +7,16 @@
 	"type enum": {
 		"prefix": "et",
 		"description": "obj as const enum type",
-		"body": ["export type $1 = typeof $1[keyof typeof $1]"]
-	}
+		"body": ["export type $1 = (typeof $1)[keyof typeof $1]"]
+	},
+  "enum const": {
+    "prefix": ["ee", "export const enum"],
+    "description": "obj as const enum",
+    "body": [
+      "export const $1 = {",
+      "\t$2",
+      "} as const",
+      "export type $1 = (typeof $1)[keyof typeof $1]"
+    ]
+  }
 }
