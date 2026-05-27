@@ -4,6 +4,8 @@ return {
   opts = {
     styles = {
       lazygit = {
+        width = 0.96,
+        height = 0.96,
         keys = {
           -- Override double-escape: hide lazygit instead of entering normal mode
           term_normal = {

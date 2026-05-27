@@ -165,19 +165,19 @@ vim.keymap.set("n", "gb", "<cmd>BufferLinePick<cr>", { desc = "Pick Buffer" })
 -- and "hydra" buffer pick close
 local function hydra_pick_close()
   repeat
-    local before = #vim.fn.getbufinfo({ buflisted = 1 })
+    local before = #vim.fn.getbufinfo { buflisted = 1 }
     vim.cmd("BufferLinePickClose")
-    local after = #vim.fn.getbufinfo({ buflisted = 1 })
+    local after = #vim.fn.getbufinfo { buflisted = 1 }
   until after <= 1 or before == after
 end
 vim.keymap.set("n", "gB", hydra_pick_close, { desc = "Pick Close Buffer" })
 vim.keymap.set("n", "<Leader>bJ", hydra_pick_close, { desc = "Pick Close Buffer" })
 -- Fake group to be filled in with our inline plugins
-require("which-key").add({
+require("which-key").add {
   {
     "<leader>j",
     group = "Editing actions",
     mode = { "n", "x" },
     icon = { cat = "extension", name = "txt" },
   },
-})
+}
