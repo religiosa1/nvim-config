@@ -10,8 +10,11 @@ vim.keymap.set("x", "$", "g_")
 
 -- helix-like combinations for start-end of the line on the home row
 vim.keymap.set({ "n", "o", "x" }, "gh", "^")
+vim.keymap.set({ "n", "o", "x" }, "пр", "^")
 vim.keymap.set({ "n", "o", "x" }, "gH", "0")
+vim.keymap.set({ "n", "o", "x" }, "пР", "0")
 vim.keymap.set({ "n", "o", "x" }, "gl", "g_")
+vim.keymap.set({ "n", "o", "x" }, "пд", "g_")
 
 -- move record macro to <C-q> from just q, as I apparently constantly hit q by accident
 vim.keymap.set("n", "<C-q>", "q", { noremap = true, desc = "Record macro" })
