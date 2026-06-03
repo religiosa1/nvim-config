@@ -8,6 +8,11 @@ end, { desc = "Toggle whitespace display" })
 -- $ in visual mode is stupid, as it selects trailing CR, as well. remapping to g_
 vim.keymap.set("x", "$", "g_")
 
+-- helix-like combinations for start-end of the line on the home row
+vim.keymap.set({ "n", "o", "x" }, "gh", "^")
+vim.keymap.set({ "n", "o", "x" }, "gH", "0")
+vim.keymap.set({ "n", "o", "x" }, "gl", "g_")
+
 -- move record macro to <C-q> from just q, as I apparently constantly hit q by accident
 vim.keymap.set("n", "<C-q>", "q", { noremap = true, desc = "Record macro" })
 vim.keymap.set("n", "q", "<nop>", { noremap = true })
