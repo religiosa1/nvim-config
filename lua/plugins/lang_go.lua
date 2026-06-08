@@ -66,6 +66,29 @@ return {
           },
         },
       },
+      setup = {
+        -- Lazyvim workaround for gopls missing semanticTokensProvider, with nil guard, to fix
+        --  `attempt to index local 'semantic' (a nil value)`
+        -- Gopls bug: gopls doesn't set semanticTokensProvider in its initialize
+        -- response even though it does support semantic tokens.
+        gopls = function(_, opts)
+          Snacks.util.lsp.on({ name = "gopls" }, function(_, client)
+            if not client.server_capabilities.semanticTokensProvider then
+              local semantic = vim.tbl_get(client, "config", "capabilities", "textDocument", "semanticTokens")
+              if semantic then
+                client.server_capabilities.semanticTokensProvider = {
+                  full = true,
+                  legend = {
+                    tokenTypes = semantic.tokenTypes,
+                    tokenModifiers = semantic.tokenModifiers,
+                  },
+                  range = true,
+                }
+              end
+            end
+          end)
+        end,
+      },
     },
   },
 }

@@ -16,7 +16,7 @@ return {
                 self.esc_timer:stop()
                 self:hide()
               else
-                self.esc_timer:start(200, 0, function() end)
+                self.esc_timer:start(vim.o.timeoutlen, 0, function() end)
                 return "<esc>"
               end
             end,
