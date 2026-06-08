@@ -115,7 +115,7 @@ return {
         end
         vim.keymap.set("n", "<C-p>", toggle_preview, { buffer = buf_id, desc = "Toggle file preview" })
 
-        -- shadows global <leader>o for mini.files on opened mini.files
+        -- with shadowing shadows global <leader>o for mini.files on opened mini.files
         vim.keymap.set("n", "<leader>o", function()
           local curr_entry = MiniFiles.get_fs_entry()
           if curr_entry then
@@ -130,6 +130,16 @@ return {
             vim.notify("No file or directory selected", vim.log.levels.WARN)
           end
         end, { buffer = buf_id, desc = "Open in the system app" })
+
+        -- also shadows global <leader>O, this time for Oil this is for bulk creation of files and such
+        vim.keymap.set("n", "<leader>O", function()
+          local curr_entry = MiniFiles.get_fs_entry()
+          if curr_entry then
+            vim.cmd(":Oil --float " .. vim.fn.fnamemodify(curr_entry.path, ":h"))
+          else
+            vim.notify("No file or directory selected", vim.log.levels.WARN)
+          end
+        end, { buffer = buf_id, desc = "Open selected directory in Oil" })
 
         -- reuse "open definition in VSplit" from our regular keymap in mini.files to open file in a VSplit
         vim.keymap.set("n", "g<C-v>", function()
