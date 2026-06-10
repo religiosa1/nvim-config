@@ -10,6 +10,20 @@ return {
           -- not entirely sure I like it, keeping it here for maybe disabling later
           auto_brackets = {
             enabled = true,
+            -- fall back to semantic-token resolution instead of blindly adding ()
+            -- for any Function/Method-kind item: fixes svelte css pseudo-class
+            -- completions (::after etc.) and reduces spurious () when passing
+            -- a function as a callback arg
+            kind_resolution = {
+              blocked_filetypes = {
+                "typescriptreact",
+                "javascriptreact",
+                "vue",
+                "typescript",
+                "javascript",
+                "svelte",
+              },
+            },
           },
         },
       },
