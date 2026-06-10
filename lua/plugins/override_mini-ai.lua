@@ -9,6 +9,13 @@ return {
         "[.:]%s*[%w_]+%b()", -- around
         "^[.:]%s*[%w_]+%(().*()%)$", -- inner
       }
+      -- "j" for generic: identifier (word/./:: chars) followed by balanced <>
+      -- e.g. Array<string>, Map<K, V>, Vec::<i32>
+      -- "a" is just "<...>" (name kept), "i" is content inside <>
+      opts.custom_textobjects.j = {
+        "%f[%w_%.:][%w_%.:]+%b<>",
+        "^.-()<().-()>()$",
+      }
     end,
   },
   -- which-key helper to go with it
@@ -20,6 +27,8 @@ return {
           mode = { "x", "o" }, -- visual + operator-pending, same as mini.ai's objects
           { "am", desc = "method chain link" },
           { "im", desc = "method chain args" },
+          { "aj", desc = "generic <...> with name" },
+          { "ij", desc = "generic <...> contents" },
         },
       })
     end,
