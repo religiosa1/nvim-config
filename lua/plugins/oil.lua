@@ -24,7 +24,7 @@ return {
       },
       keymaps = {
         q = { float_only_close, mode = "n", desc = "Close float window" },
-        ["<Esc>"] = { float_only_close, mode = "n", desc = "Close float window" },
+        ["<Esc><Esc>"] = { float_only_close, mode = "n", desc = "Close float window" },
         ["<C-s>"] = false,
         ["g<C-v>"] = { "actions.select", opts = { vertical = true }, desc = "Open file in VSplit" },
       },

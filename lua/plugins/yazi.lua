@@ -1,6 +1,3 @@
-if true then
-  return {}
-end
 return {
   ---@type LazySpec
   {
@@ -23,11 +20,11 @@ return {
         "<cmd>Yazi cwd<cr>",
         desc = "Open the file manager in nvim's working directory",
       },
-      {
-        "<c-a-up>", -- default is Ctrl-Up, but it conflicts with window resize
-        "<cmd>Yazi toggle<cr>",
-        desc = "Resume the last yazi session",
-      },
+      -- {
+      --   "<c-a-up>", -- default is Ctrl-Up, but it conflicts with window resize
+      --   "<cmd>Yazi toggle<cr>",
+      --   desc = "Resume the last yazi session",
+      -- },
     },
     ---@type YaziConfig | {}
     opts = {
