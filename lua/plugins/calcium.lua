@@ -8,9 +8,9 @@ return {
     default_mode = "replace",
   },
   init = function()
-    require("which-key").add({
+    require("which-key").add {
       { "<leader>=", icon = { icon = "", color = "yellow" } },
-    })
+    }
   end,
   keys = {
     {
@@ -37,6 +37,9 @@ return {
           return
         end
         table.sort(numbers)
+        local sum = vim.iter(numbers):fold(0, function(acc, cur)
+          return acc + cur
+        end)
         local min = numbers[1]
         local max = numbers[#numbers]
 
@@ -62,6 +65,7 @@ return {
           return string.format("%.10g", x)
         end
         local msg = table.concat({
+          "sum = " .. fmt(sum),
           "min = " .. fmt(min),
           "max = " .. fmt(max),
           "avg = " .. fmt(mean),
