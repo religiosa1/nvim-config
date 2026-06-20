@@ -20,4 +20,15 @@ return {
       })
     end,
   },
+  {
+    "neovim/nvim-lspconfig",
+    opts = function(_, opts)
+      -- upstream nvim-lspconfig's codebook filetypes list is missing svelte
+      -- https://github.com/neovim/nvim-lspconfig/blob/master/lsp/codebook.lua
+      opts.servers = opts.servers or {}
+      opts.servers.codebook = {
+        filetypes = vim.list_extend({ "svelte" }, vim.lsp.config.codebook.filetypes or {}),
+      }
+    end,
+  },
 }
