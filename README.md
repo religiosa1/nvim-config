@@ -8,12 +8,6 @@ Contains my lazyvim configuration.
 lazyvim.json is placed in the gitignore for now, as I'm still experimenting
 with the plugin list on different machines.
 
-List of "extras" that's definitely going to be shared across:
-
-```
-"lazyvim.plugins.extras.lang.markdown",
-```
-
 A lot of omarchy customization plugins are also placed in the gitignore:
 
 - lazyvim.json
@@ -23,7 +17,3 @@ A lot of omarchy customization plugins are also placed in the gitignore:
 - lua/plugins/snacks-animated-scrolling-off.lua
 - lua/plugins/theme.lua
 - plugin/after/transparency.lua
-
-## TODOs:
-
-- [ ] Add "copy file" and "archive and copy" file mini.files commands.
