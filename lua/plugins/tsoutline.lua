@@ -1,5 +1,6 @@
 return {
   "religiosa1/tsoutline.nvim",
+  -- dir = "~/Projects/tsoutline.nvim/",
   opts = {},
   keys = {
     {

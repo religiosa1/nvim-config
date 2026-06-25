@@ -89,6 +89,14 @@ return {
             end
           end
 
+          if client.name == "markdown_oxide" then
+            -- natural language daily notes, e.g. `:Daily today`, `:Daily two days ago`, `:Daily -3`, etc.
+            vim.api.nvim_create_user_command("Daily", function(args)
+              local input = args.args
+              client:exec_cmd { command = "jump", arguments = { input } }
+            end, { desc = "Open daily note", nargs = "*" })
+          end
+
           local function codelens_supported(bufnr)
             for _, c in ipairs(vim.lsp.get_clients { bufnr = bufnr }) do
               if c.server_capabilities and c.server_capabilities.codeLensProvider then
