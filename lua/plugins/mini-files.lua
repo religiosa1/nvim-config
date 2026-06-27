@@ -74,6 +74,10 @@ return {
           FileUtils.yank_absolute_path(get_selection_path())
         end, { buffer = buf_id, desc = "Yank absolute file path" })
 
+        vim.keymap.set("n", "<leader>yn", function()
+          FileUtils.yank_file_name(get_selection_path())
+        end, { buffer = buf_id, desc = "Yank file name" })
+
         vim.keymap.set({ "n", "x" }, "<leader>yf", function()
           if vim.fn.mode() ~= "n" then
             FileUtils.copy_visual_selection_to_clipboard(function(lnum)

@@ -37,23 +37,32 @@ vim.keymap.set("i", "<A-b>", "<C-o>b", { silent = true })
 -- Go To definition in a vertical split
 vim.keymap.set("n", "g<C-v>", "<C-w>v:lua Snacks.picker.lsp_definitions()<CR>", { desc = "Go to definition in Vsplit" })
 
--- Extended default <C-g>: also yanking the filename
-local function yankAboslutePath()
-  vim.fn.setreg("+", vim.fn.expand("%:~"))
-  vim.cmd("file")
-end
+require("which-key").add {
+  {
+    "<leader>y",
+    group = "Yank file",
+    mode = { "n" },
+  },
+}
+vim.keymap.set("n", "<leader>yy", function()
+  local path = vim.fn.expand("%:p")
+  require("util.files").yank_relative_path(path)
+end, { desc = "Yank relative path" })
 
-vim.keymap.set("n", "<C-g>", yankAboslutePath, { desc = "Show file info and yank filename" })
-vim.keymap.set("n", "<C-п>", yankAboslutePath)
+vim.keymap.set("n", "<leader>yY", function()
+  local path = vim.fn.expand("%:p")
+  require("util.files").yank_absolute_path(path)
+end, { desc = "Yank absolute path" })
 
--- Copy relative file path to clipboard and notify
-local function yankRelativePath()
-  local relative_path = vim.fn.expand("%:.")
-  vim.fn.setreg("+", relative_path)
-  vim.notify(relative_path, vim.log.levels.INFO, { title = "Copied file name", ft = "text" })
-end
-vim.keymap.set("n", "<C-s>", yankRelativePath, { desc = "Copy relative path" })
-vim.keymap.set("n", "<C-ы>", yankRelativePath)
+vim.keymap.set("n", "<leader>yn", function()
+  local path = vim.fn.expand("%:p")
+  require("util.files").yank_file_name(path)
+end, { desc = "Yank file name" })
+
+vim.keymap.set("n", "<leader>yf", function()
+  local path = vim.fn.expand("%:p")
+  require("util.files").copy_files_to_clipboard { path }
+end, { desc = "Copy file into system clipboard" })
 
 -- Copy relative filename and pos
 vim.keymap.set({ "n", "x" }, "<leader>l", function()

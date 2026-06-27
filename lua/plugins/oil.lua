@@ -55,6 +55,13 @@ return {
           mode = "n",
           desc = "Yank absolute file path",
         },
+        ["<leader>yn"] = {
+          function()
+            FileUtils.yank_file_name(get_selection_path())
+          end,
+          mode = "n",
+          desc = "Yank file name",
+        },
         ["<leader>yf"] = {
           function()
             if vim.fn.mode() ~= "n" then

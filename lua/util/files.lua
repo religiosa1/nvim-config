@@ -59,16 +59,22 @@ local function yank_path(path, modifier, title)
   vim.notify(result, vim.log.levels.INFO, { title = title, ft = "text" })
 end
 
+---Yank a file's path name into the system register
+---@param path string absolute path
+M.yank_file_name = function(path)
+  yank_path(path, ":t", "Yanked file name")
+end
+
 ---Yank a file's path relative to the cwd into the system register.
 ---@param path string absolute path
 M.yank_relative_path = function(path)
-  yank_path(path, ":.", "Relative path copied to register")
+  yank_path(path, ":.", "Yanked relative path")
 end
 
 ---Yank a file's absolute path into the system register.
 ---@param path string absolute path
 M.yank_absolute_path = function(path)
-  yank_path(path, ":p", "Absolute path copied to register")
+  yank_path(path, ":p", "Yanked absolute path")
 end
 
 ---Copy every file under the current visual selection to the system clipboard.
