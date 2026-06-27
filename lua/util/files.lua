@@ -10,19 +10,19 @@ M.copy_files_to_clipboard = function(paths)
   end
   local result
   if vim.fn.has("mac") == 1 then
-    local items = vim
-      .iter(paths)
-      :map(function(path)
-        local safe = path:gsub([[\]], [[\\]]):gsub([["]], [[\"]])
-        return string.format([[POSIX file "%s"]], safe)
-      end)
-      :totable()
-    local list = "{" .. table.concat(items, ", ") .. "}"
-    result = vim.fn.system {
-      "osascript",
-      "-e",
-      [[tell application "Finder" to set the clipboard to ]] .. list,
-    }
+    local paths_json = vim.fn.json_encode(paths)
+    local jxa = string.format(
+      [[
+        ObjC.import('AppKit');
+        var paths = %s;
+        var pb = $.NSPasteboard.generalPasteboard;
+        pb.clearContents;
+        var urls = $(paths.map(function(p) { return $.NSURL.fileURLWithPath(p); }));
+        pb.writeObjects(urls);
+      ]],
+      paths_json
+    )
+    result = vim.fn.system { "osascript", "-l", "JavaScript", "-e", jxa }
   else -- Linux, wayland only
     local uris = vim
       .iter(paths)
