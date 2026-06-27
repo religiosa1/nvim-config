@@ -1,10 +1,24 @@
 -- I mostly use oil as a netrw replacement for now. The main file explorer is mini.files now.
 
+local FileUtils = require("util.files")
+
 local function float_only_close()
   local is_float = vim.api.nvim_win_get_config(0).relative ~= ""
   if is_float then
     require("oil").close()
   end
+end
+
+---Absolute path of the entry under the cursor in an oil buffer.
+---@return string
+local function get_selection_path()
+  local oil = require("oil")
+  local dir = oil.get_current_dir()
+  local entry = oil.get_cursor_entry()
+  if not dir or not entry then
+    error("No file or directory selected")
+  end
+  return dir .. entry.name
 end
 
 return {
@@ -27,6 +41,57 @@ return {
         ["<Esc><Esc>"] = { float_only_close, mode = "n", desc = "Close float window" },
         ["<C-s>"] = false,
         ["g<C-v>"] = { "actions.select", opts = { vertical = true }, desc = "Open file in VSplit" },
+        ["<leader>yy"] = {
+          function()
+            FileUtils.yank_relative_path(get_selection_path())
+          end,
+          mode = "n",
+          desc = "Yank relative file path",
+        },
+        ["<leader>yY"] = {
+          function()
+            FileUtils.yank_absolute_path(get_selection_path())
+          end,
+          mode = "n",
+          desc = "Yank absolute file path",
+        },
+        ["<leader>yf"] = {
+          function()
+            if vim.fn.mode() ~= "n" then
+              local oil = require("oil")
+              local dir = oil.get_current_dir()
+              FileUtils.copy_visual_selection_to_clipboard(function(lnum)
+                local entry = oil.get_entry_on_line(0, lnum)
+                return dir and entry and (dir .. entry.name)
+              end)
+            else
+              FileUtils.copy_files_to_clipboard { get_selection_path() }
+            end
+          end,
+          mode = { "n", "x" },
+          desc = "Yank file(s) to system clipboard",
+        },
+        ["<leader>e"] = {
+          function()
+            FileUtils.open_file(get_selection_path())
+          end,
+          mode = "n",
+          desc = "Open in the system app",
+        },
+        ["<leader>o"] = {
+          function()
+            local oil = require("oil")
+            local dir = oil.get_current_dir()
+            if not dir then
+              vim.notify("No directory", vim.log.levels.WARN)
+              return
+            end
+            float_only_close()
+            require("mini.files").open(dir)
+          end,
+          mode = "n",
+          desc = "Open current directory in mini.files",
+        },
       },
       view_options = {
         show_hidden = true,
