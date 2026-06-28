@@ -27,30 +27,14 @@ return {
       },
     },
   },
-  -- default markdown-preview is basically abandonware at this point,
+  -- default iamcco/markdown-preview.nvim is basically abandonware at this point,
   -- it has an old mermaid version, which doesn't render half of things I need
-  { "iamcco/markdown-preview.nvim", enabled = false },
-  -- instead using this github-flavored markdown previewer. requires Bun.
+  -- instead using this previewer which uses the same naming
   {
-    "wallpants/github-preview.nvim",
-    -- default command is "GithubPreviewToggle", but I'd never remember that
-    cmd = { "MarkdownPreview" },
-    -- keys = { "<leader>mpt" },
-    opts = {
-      details_tags_open = true,
-      cursor_line = {
-        opacity = 0.0,
-      },
-    },
-    config = function(_, opts)
-      local gpreview = require("github-preview")
-      gpreview.setup(opts)
-      local fns = gpreview.fns
-      vim.api.nvim_create_user_command("MarkdownPreview", fns.toggle, {})
-      -- vim.keymap.set("n", "<leader>mpt", fns.toggle)
-      -- vim.keymap.set("n", "<leader>mps", fns.single_file_toggle)
-      -- vim.keymap.set("n", "<leader>mpd", fns.details_tags_toggle)
-    end,
+    "selimacerbas/markdown-preview.nvim",
+    dependencies = { "selimacerbas/live-server.nvim" },
+    lazy = true,
+    keys = false, -- disabling any keybindings, need to call the command explicitly
   },
   -- Changing lsp for markdown from marskman to markdown_oxide
   {
