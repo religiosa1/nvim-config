@@ -29,8 +29,16 @@ return {
     },
     statuscolumn = { refresh = 150 }, -- ms; default is fast
     image = {
-      -- Plugin is disabled by default, so no inline rending is there in markdown
+      -- this requires kitty graphics protocol, so will work in ghostty, but not in foot
       enabled = true,
+      -- overriding defaults here, rendering images in floats only
+      doc = {
+        inline = false,
+        float = true,
+      },
+      math = {
+        enabled = true,
+      },
     },
     explorer = {
       -- disabling snacks explorer as the default dir viewer in favor of mini.files

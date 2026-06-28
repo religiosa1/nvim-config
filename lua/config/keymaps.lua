@@ -198,3 +198,51 @@ require("which-key").add {
     icon = { cat = "extension", name = "txt" },
   },
 }
+
+-- Tear down snacks' doc-image attach state for a buffer (placements + autocmd
+-- groups + attach flag) so the next doc.attach() re-renders from scratch.
+-- NOTE: inline.new() registers an un-stored nvim_buf_attach(on_lines) with no
+-- public detach, and inline:update() ignores config.doc.inline -- so switching
+-- inline->float can re-show inline images on the next text edit. Reload the
+-- buffer (:e) if it's acting up.
+local function snacks_image_detach(buf)
+  pcall(vim.api.nvim_del_augroup_by_name, "snacks.image.inline." .. buf)
+  pcall(vim.api.nvim_del_augroup_by_name, "snacks.image.doc." .. buf)
+  if vim.api.nvim_buf_is_valid(buf) then
+    vim.b[buf].snacks_image_attached = false
+  end
+end
+
+vim.keymap.set("n", "<leader>uv", function()
+  local doc = Snacks.image.doc
+  local cfg = Snacks.image.config.doc
+  cfg.inline = not cfg.inline
+  cfg.float = true -- keep float as the fallback whenever inline is off
+
+  local buf = vim.api.nvim_get_current_buf()
+  doc.hover_close()
+  Snacks.image.placement.clean(buf)
+  snacks_image_detach(buf)
+  doc.attach(buf)
+  vim.notify("Doc images: " .. (cfg.inline and "inline" or "float"), vim.log.levels.INFO, { title = "Snacks image" })
+end, { desc = "Toggle image inline/float render" })
+
+vim.keymap.set("n", "<leader>uV", function()
+  local cfg = Snacks.image.config
+  cfg.enabled = not cfg.enabled
+  Snacks.image.doc.hover_close()
+  if cfg.enabled then
+    -- re-attach current buffer; the FileType autocmd registered at setup handles
+    -- any others as they're opened.
+    local buf = vim.api.nvim_get_current_buf()
+    snacks_image_detach(buf)
+    Snacks.image.doc.attach(buf)
+  else
+    -- clear every buffer; doc.attach() now early-returns on enabled == false.
+    Snacks.image.placement.clean()
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      snacks_image_detach(buf)
+    end
+  end
+  vim.notify("Image rendering: " .. (cfg.enabled and "on" or "off"), vim.log.levels.INFO, { title = "Snacks image" })
+end, { desc = "Toggle image rendering on/off" })

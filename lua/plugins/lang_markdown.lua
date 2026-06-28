@@ -5,6 +5,13 @@ return {
   {
     "MeanderingProgrammer/render-markdown.nvim",
     opts = {
+      code = {
+        -- Let snacks own mermaid blocks: render-markdown's code-block decoration
+        -- (conceal + padding) breaks snacks' inline image placement, leaving
+        -- mermaid stuck in float-only and ignoring the <leader>uM inline/float
+        -- toggle. Disabling render here lets snacks render + switch it like math.
+        disable = { "mermaid" },
+      },
       win_options = {
         -- https://github.com/MeanderingProgrammer/render-markdown.nvim/blob/e41b0002fe4196825450ab5a6343300c40791d51/README.md?plain=1#L639-L644
         -- See :h 'conceallevel'
@@ -17,6 +24,10 @@ return {
       },
     },
   },
+  -- `latex` parser drives both math highlight and snacks image rendering of
+  -- $$...$$ / $...$ (```math ... ``` would still work though). But also give a nive
+  -- syntax highlight
+  { "nvim-treesitter/nvim-treesitter", opts = { ensure_installed = { "latex" } } },
   {
     "mfussenegger/nvim-lint",
     opts = {
