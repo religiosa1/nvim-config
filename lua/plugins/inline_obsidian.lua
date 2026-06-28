@@ -36,8 +36,13 @@ return {
     },
     {
       "<leader>Nn",
+      Obsidian.new_note_in_dir,
+      desc = "New obsidian note (pick folder)",
+    },
+    {
+      "<leader>NN",
       Obsidian.new_note,
-      desc = "New obsidian note",
+      desc = "New obsidian note (type path)",
     },
     {
       "<leader>NO",

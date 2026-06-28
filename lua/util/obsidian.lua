@@ -11,6 +11,10 @@ M.workspaces = {
 -- Obsidian-style template that uses {{date}} / {{time}} / {{title}} mustache vars
 M.template_path = "~/Documents/obsidian/templates/frontmatter.md"
 
+-- Folder names excluded from the new-note folder picker (in addition to any
+-- hidden dotdir). These hold non-note content you'd never target a note into.
+M.ignored_dirs = { "templates", "attachments" }
+
 --- Translate the (common subset of) moment.js format tokens that Obsidian uses
 --- into os.date / strftime tokens. Longest tokens first so e.g. YYYY is matched
 --- before YY.
@@ -103,34 +107,96 @@ function M.grep_note()
   Snacks.picker.grep(vault_scope_opts())
 end
 
----Create a new note.
----Creates a new note in the current workspace, or in the first workspace if
----we're outside of any workspace.
+-- Create (and open) a note named `name` under `dir`. Adds the .md extension,
+-- creates any missing parent dirs (:edit won't), and seeds frontmatter only
+-- into a freshly created, empty note.
+local function create_note(dir, name)
+  name = name and vim.trim(name) or ""
+  if name == "" then
+    return
+  end
+  local note_path = vim.fs.joinpath(dir, name)
+  if not vim.endswith(note_path, ".md") then
+    note_path = note_path .. ".md"
+  end
+  vim.fn.mkdir(vim.fs.dirname(note_path), "p")
+  vim.cmd.edit(note_path)
+  vim.bo.ft = "markdown"
+  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+  if #lines == 1 and lines[1] == "" then
+    M.insert_frontmatter()
+  end
+end
+
+-- The current vault path if the buffer is in one, else the first configured vault.
+-- Returns the expanded root path, or nil if nothing is configured.
+local function get_vault_path()
+  local ws = M.get_vault(0) or M.workspaces[1]
+  if not ws or not ws.path then
+    return nil
+  end
+  return vim.fn.expand(ws.path)
+end
+
+-- Recursively collect note folders under `root`, pruning hidden dotdirs and
+-- M.ignored_dirs (pruning skips their subtrees too).
+local function collect_dirs(root)
+  local out = { root }
+  local function walk(dir)
+    for name, type in vim.fs.dir(dir) do
+      if type == "directory" and name:sub(1, 1) ~= "." and not vim.tbl_contains(M.ignored_dirs, name) then
+        local p = vim.fs.joinpath(dir, name)
+        out[#out + 1] = p
+        walk(p)
+      end
+    end
+  end
+  walk(root)
+  return out
+end
+
+---Create a new note, typing the path with vault-rooted file completion.
+---Creates in the current workspace, or the first workspace if outside one.
 function M.new_note()
+  local root = get_vault_path()
+  if not root then
+    return
+  end
+  -- cd-to-vault so `completion = "file"` is rooted at the vault;
+  -- restored in the callback. Global cd (not lcd) so the input float's
+  -- completion reliably sees it. Upgrade to a customlist completefunc if the
+  -- cwd churn ever bites another plugin.
+  -- At any time, hit tab to trigger autocompletion in Snacks
+  local cwd = vim.fn.getcwd()
+  vim.cmd.cd(root)
   Snacks.input.input({
     prompt = "Enter note name",
     completion = "file",
   }, function(value)
-    local name = value and vim.trim(value) or ""
-    if name == "" then
+    vim.cmd.cd(cwd)
+    create_note(root, value)
+  end)
+end
+
+---Create a new note, fuzzy-selecting the target folder first.
+function M.new_note_in_dir()
+  local root = get_vault_path()
+  if not root then
+    return
+  end
+  Snacks.picker.select(collect_dirs(root), {
+    prompt = "Select folder",
+    format_item = function(p)
+      local rel = p:sub(#root + 1):gsub("^/", "")
+      return rel == "" and "/" or rel
+    end,
+  }, function(dir)
+    if not dir then
       return
     end
-    -- create relative to the current vault if we're in one, else the first
-    local ws = M.get_vault(0) or M.workspaces[1]
-    if not ws or not ws.path then
-      return
-    end
-    local note_path = vim.fs.joinpath(ws.path, name)
-    if not vim.endswith(note_path, ".md") then
-      note_path = note_path .. ".md"
-    end
-    vim.cmd.edit(note_path)
-    vim.bo.ft = "markdown"
-    -- only seed frontmatter into a fresh note, never an existing one
-    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-    if #lines == 1 and lines[1] == "" then
-      M.insert_frontmatter()
-    end
+    Snacks.input.input({ prompt = "Enter note name" }, function(value)
+      create_note(dir, value)
+    end)
   end)
 end
 
