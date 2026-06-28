@@ -75,6 +75,13 @@ return {
           }
         ),
         on_attach = function(client, bufnr)
+          -- markdown_oxide's semantic tokens deadlock nvim: typing inside a
+          -- partial link like `[x](` triggers a semanticTokens/full request that
+          -- races the edit, server answers -32801 "Content modified", nvim
+          -- re-requests, races again -> infinite loop on the main thread (editor
+          -- hangs at 100% CPU). The tokens add nothing for a notes LSP, so drop
+          -- the capability entirely.
+          client.server_capabilities.semanticTokensProvider = nil
           -- normalize vim.NIL scheme values so mini.files doesn't crash on sync
           local file_ops = vim.tbl_get(client, "server_capabilities", "workspace", "fileOperations")
           if file_ops then
