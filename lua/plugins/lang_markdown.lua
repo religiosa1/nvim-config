@@ -1,6 +1,22 @@
 return {
   -- don't forget to install lang.markdown from lazy-extras for render-markdown.nvim and toc
-  -- aldo prettier for formatter
+  -- also prettier for formatter
+  -- Overriding conceallevel settings for render-markdown
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    opts = {
+      win_options = {
+        -- https://github.com/MeanderingProgrammer/render-markdown.nvim/blob/e41b0002fe4196825450ab5a6343300c40791d51/README.md?plain=1#L639-L644
+        -- See :h 'conceallevel'
+        conceallevel = {
+          -- Defaults to getting conceallevel from opts, but its' set in autocmd, so overriding manually to 0
+          default = 0,
+          -- Used when being rendered, concealed text is completely hidden
+          rendered = 3,
+        },
+      },
+    },
+  },
   {
     "mfussenegger/nvim-lint",
     opts = {
