@@ -1,9 +1,13 @@
 -- Keymaps are automatically loaded on the VeryLazy event
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
-vim.keymap.set("n", "<leader>uW", function()
-  vim.o.list = not vim.o.list
-end, { desc = "Toggle whitespace display" })
+
+-- mapping <C-space> to noop, so we can switch keyboard layouts with it not affecting anything else
+-- incremental treesitter is on S, see ../plugins/override_flash.lua:11
+vim.keymap.set({ "n", "o", "x", "i" }, "<C-space>", "<nop>", { noremap = true })
+-- insert mode: the terminal sends <C-space> as <C-@>, which triggers the
+-- builtin i_CTRL-@ ("insert last inserted text + stop insert")
+vim.keymap.set("i", "<C-@>", "<nop>", { noremap = true })
 
 -- $ in visual mode is stupid, as it selects trailing CR, as well. remapping to g_
 vim.keymap.set("x", "$", "g_")
@@ -101,6 +105,7 @@ vim.keymap.set({ "n", "x" }, "<leader>l", function()
   end
   vim.fn.setreg("+", output)
   vim.notify(output, vim.log.levels.INFO, { title = "Copied position", ft = "text" })
+  -- deselecting visual selection if it's there
   local keys = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
   vim.api.nvim_feedkeys(keys, "nx", false)
 end, {
@@ -127,24 +132,6 @@ vim.keymap.set("x", "gR", '"_dP', { desc = "Replace with register" })
 
 vim.keymap.set("x", "x", '"_d', { desc = "Delete to blackhole" })
 vim.keymap.set({ "n", "v", "o" }, "<LocalLeader>d", '"_d', { desc = "Delete to blackhole" })
-
--- Cookbook spell checks toggle
-vim.keymap.set("n", "<leader>ue", function()
-  if vim.lsp.is_enabled("codebook") then
-    vim.lsp.enable("codebook", false)
-    for i, v in pairs(vim.diagnostic.get_namespaces()) do
-      if vim.startswith(v.name, "nvim.lsp.codebook") then
-        -- we need to reset specific namespace to not break any other warning from LSP
-        vim.diagnostic.reset(i)
-        vim.diagnostic.hide(i)
-      end
-    end
-    vim.notify("Disabled codebook", vim.log.levels.WARN, { title = "Spelling" })
-  else
-    vim.lsp.enable("codebook", true)
-    vim.notify("Enabled codebook", { title = "Spelling" })
-  end
-end, { desc = "Toggle Codebook Sp[e]lling" })
 
 -- More sane exit terminal mode -- doesn't work on MacOS
 vim.keymap.set("t", "<C-Esc>", "<C-\\><C-n>", { remap = true, desc = "Exit terminal mode" })
@@ -198,6 +185,31 @@ require("which-key").add {
     icon = { cat = "extension", name = "txt" },
   },
 }
+
+--------------------------------------------------------------------------------
+-- Extra <leader>u? stuff
+
+vim.keymap.set("n", "<leader>uW", function()
+  vim.o.list = not vim.o.list
+end, { desc = "Toggle whitespace display" })
+
+-- Cookbook spell checks toggle
+vim.keymap.set("n", "<leader>ue", function()
+  if vim.lsp.is_enabled("codebook") then
+    vim.lsp.enable("codebook", false)
+    for i, v in pairs(vim.diagnostic.get_namespaces()) do
+      if vim.startswith(v.name, "nvim.lsp.codebook") then
+        -- we need to reset specific namespace to not break any other warning from LSP
+        vim.diagnostic.reset(i)
+        vim.diagnostic.hide(i)
+      end
+    end
+    vim.notify("Disabled codebook", vim.log.levels.WARN, { title = "Spelling" })
+  else
+    vim.lsp.enable("codebook", true)
+    vim.notify("Enabled codebook", { title = "Spelling" })
+  end
+end, { desc = "Toggle Codebook Sp[e]lling" })
 
 -- Tear down snacks' doc-image attach state for a buffer (placements + autocmd
 -- groups + attach flag) so the next doc.attach() re-renders from scratch.

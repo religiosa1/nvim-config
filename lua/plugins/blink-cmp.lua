@@ -37,6 +37,7 @@ return {
       -- https://cmp.saghen.dev/configuration/keymap.html#enter
       keymap = {
         preset = "enter",
+        ["<C-space>"] = {}, -- show documentation -- remapped bellow
         ["<A-m>"] = { "show_documentation", "hide_documentation" },
         ["<C-p>"] = { "select_prev", "fallback_to_mappings" },
         ["<C-n>"] = { "show", "select_next", "fallback_to_mappings" },
