@@ -35,6 +35,11 @@ return {
       desc = "Grep obsidian notes",
     },
     {
+      "<leader>Ni",
+      Obsidian.open_inbox_note,
+      desc = "Open inbox note",
+    },
+    {
       "<leader>Nn",
       Obsidian.new_note_in_dir,
       desc = "New obsidian note (pick folder)",
@@ -42,7 +47,7 @@ return {
     {
       "<leader>NN",
       Obsidian.new_note,
-      desc = "New obsidian note (type path)",
+      desc = "New obsidian note",
     },
     {
       "<leader>NO",

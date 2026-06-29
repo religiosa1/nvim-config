@@ -1,18 +1,29 @@
 --- utils for obsidian vault detection and frontmatter templates
 local M = {}
 
-M.workspaces = {
+--- @class Vault vault configuration
+--- @field name string name of the vault
+--- @field path string path to the vault
+--- @field inbox_note? string inbox note override for the vault
+--- @field template? string | false default template override (false to disable)
+
+--- Configuration of vaults. At least one vault must be configured.
+--- @type Vault[]
+M.vaults = {
   {
     name = "obsidian",
     path = "~/Documents/obsidian/",
   },
 }
 
--- Obsidian-style template that uses {{date}} / {{time}} / {{title}} mustache vars
-M.template_path = "~/Documents/obsidian/templates/frontmatter.md"
+--- Relative path inside of a vault for the inbox note
+M.inbox_note = "!inbox.md"
 
--- Folder names excluded from the new-note folder picker (in addition to any
--- hidden dotdir). These hold non-note content you'd never target a note into.
+--- Default template to use when creating a note, relative to the vault path
+M.default_template = "templates/frontmatter.md"
+
+--- Folder names excluded from the new-note folder picker (in addition to any
+--- hidden dotdir). These hold non-note content you'd never target a note into.
 M.ignored_dirs = { "templates", "attachments" }
 
 --- Translate the (common subset of) moment.js format tokens that Obsidian uses
@@ -75,12 +86,12 @@ end
 -- toggling to search across every configured vault.
 local function vault_scope_opts()
   return {
-    dirs = { M.workspaces[1].path },
+    dirs = { M.vaults[1].path },
     toggles = { all_vaults = "w" },
     actions = {
       toggle_vaults = function(picker)
         picker.opts.all_vaults = not picker.opts.all_vaults
-        picker.opts.dirs = picker.opts.all_vaults and M.vault_paths() or { M.workspaces[1].path }
+        picker.opts.dirs = picker.opts.all_vaults and M.vault_paths() or { M.vaults[1].path }
         picker.list:set_target()
         picker:find()
       end,
@@ -107,10 +118,12 @@ function M.grep_note()
   Snacks.picker.grep(vault_scope_opts())
 end
 
--- Create (and open) a note named `name` under `dir`. Adds the .md extension,
--- creates any missing parent dirs (:edit won't), and seeds frontmatter only
--- into a freshly created, empty note.
-local function create_note(dir, name)
+--- Create (and open) a note named `name` under `dir`. Adds the .md extension,
+--- creates any missing parent dirs (:edit won't), and seeds frontmatter only
+--- into a freshly created, empty note.
+--- @param dir string vault path
+--- @param name string note name
+local function create_or_open_note(dir, name)
   name = name and vim.trim(name) or ""
   if name == "" then
     return
@@ -122,24 +135,19 @@ local function create_note(dir, name)
   vim.fn.mkdir(vim.fs.dirname(note_path), "p")
   vim.cmd.edit(note_path)
   vim.bo.ft = "markdown"
-  local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-  if #lines == 1 and lines[1] == "" then
+
+  local buf_id = 0 -- zero for current after edit
+  local is_buf_empty = vim.api.nvim_buf_line_count(buf_id) == 1
+    and vim.api.nvim_buf_get_lines(buf_id, 0, 1, false)[1] == ""
+  if is_buf_empty then
     M.insert_frontmatter()
   end
 end
 
--- The current vault path if the buffer is in one, else the first configured vault.
--- Returns the expanded root path, or nil if nothing is configured.
-local function get_vault_path()
-  local ws = M.get_vault(0) or M.workspaces[1]
-  if not ws or not ws.path then
-    return nil
-  end
-  return vim.fn.expand(ws.path)
-end
-
--- Recursively collect note folders under `root`, pruning hidden dotdirs and
--- M.ignored_dirs (pruning skips their subtrees too).
+--- Recursively collect note folders under `root`, pruning hidden dotdirs and
+--- M.ignored_dirs (pruning skips their subtrees too).
+--- @param root string root path to traverse
+--- @return string[] list of dir paths
 local function collect_dirs(root)
   local out = { root }
   local function walk(dir)
@@ -155,13 +163,11 @@ local function collect_dirs(root)
   return out
 end
 
----Create a new note, typing the path with vault-rooted file completion.
----Creates in the current workspace, or the first workspace if outside one.
+--- Create a new note, typing the path with vault-rooted file completion.
+--- Creates in the current vault, or the first vault if outside one.
 function M.new_note()
-  local root = get_vault_path()
-  if not root then
-    return
-  end
+  local vault = M.get_vault() or M.vaults[1]
+  local root = vim.fn.expand(vault.path)
   -- cd-to-vault so `completion = "file"` is rooted at the vault;
   -- restored in the callback. Global cd (not lcd) so the input float's
   -- completion reliably sees it. Upgrade to a customlist completefunc if the
@@ -174,16 +180,21 @@ function M.new_note()
     completion = "file",
   }, function(value)
     vim.cmd.cd(cwd)
-    create_note(root, value)
+    create_or_open_note(root, value)
   end)
 end
 
----Create a new note, fuzzy-selecting the target folder first.
+--- Open the preconfigured inbox note
+function M.open_inbox_note()
+  local vault = M.get_vault() or M.vaults[1]
+  local inbox_note = vault.inbox_note or M.inbox_note
+  create_or_open_note(vim.fn.expand(vault.path), inbox_note)
+end
+
+--- Create a new note, fuzzy-selecting the target folder first.
 function M.new_note_in_dir()
-  local root = get_vault_path()
-  if not root then
-    return
-  end
+  local vault = M.get_vault() or M.vaults[1]
+  local root = vim.fn.expand(vault.path)
   Snacks.picker.select(collect_dirs(root), {
     prompt = "Select folder",
     format_item = function(p)
@@ -195,20 +206,20 @@ function M.new_note_in_dir()
       return
     end
     Snacks.input.input({ prompt = "Enter note name" }, function(value)
-      create_note(dir, value)
+      create_or_open_note(dir, value)
     end)
   end)
 end
 
----Open current buffer in obsidian
+--- Open current buffer in obsidian
 function M.open_in_obsidian()
   local current_path = vim.api.nvim_buf_get_name(0)
-  local ws = M.get_vault(0)
+  local vault = M.get_vault(0)
 
   local obsidian_path = "obsidian://open"
-  if ws then
-    local vault_path = vim.fn.expand(ws.path)
-    local vault_arg = vim.uri_encode(ws.name)
+  if vault then
+    local vault_path = vim.fn.expand(vault.path)
+    local vault_arg = vim.uri_encode(vault.name)
     local relative_path = current_path:sub(#vault_path + 1)
     local file_arg = vim.uri_encode(relative_path)
     obsidian_path = "obsidian://open?vault=" .. vault_arg .. "&file=" .. file_arg
@@ -225,20 +236,20 @@ function M.open_in_obsidian()
   vim.system(cmd, { stdout = false, stderr = false })
 end
 
---- Return the workspace that contains the given buffer's file, or nil.
----@param buf? integer buffer id, defaults to current buffer
----@return { name: string, path: string }|nil
+--- Return the vault that contains the given buffer's file, or nil.
+--- @param buf? integer buffer id, defaults to current buffer
+--- @return Vault?
 function M.get_vault(buf)
+  if #M.vaults == 0 then
+    error("No Obsidian vault is configured")
+  end
   local path = vim.api.nvim_buf_get_name(buf or 0)
   if path == "" then
     return nil
   end
-  for _, ws in ipairs(M.workspaces) do
-    if vim.startswith(path, vim.fn.expand(ws.path)) then
-      return ws
-    end
-  end
-  return nil
+  return vim.iter(M.vaults):find(function(vault)
+    return vim.startswith(path, vim.fn.expand(vault.path))
+  end)
 end
 
 --- Paths of every configured vault, for pickers that take a `dirs` list.
@@ -246,21 +257,28 @@ end
 ---@return string[]
 function M.vault_paths()
   return vim
-    .iter(M.workspaces)
-    :map(function(ws)
-      return ws.path
+    .iter(M.vaults)
+    :map(function(vault)
+      return vault.path
     end)
     :totable()
 end
 
 --- Read the frontmatter template and render its variables.
----@param ctx? { title?: string }
----@return string[]|nil lines or nil if the template can't be read
+--- @param ctx { vault: Vault, title?: string }
+--- @return string[]|nil lines or nil if the template can't be read
 function M.get_frontmatter(ctx)
-  local tpl = vim.fn.expand(M.template_path)
-  local ok, lines = pcall(vim.fn.readfile, tpl)
+  if ctx.vault.template == false then
+    return nil
+  end
+  local relative_template = ctx.vault.template or M.default_template
+  if not relative_template then
+    return nil
+  end
+  local template_path = vim.fn.expand(vim.fs.joinpath(ctx.vault.path, relative_template))
+  local ok, lines = pcall(vim.fn.readfile, template_path)
   if not ok then
-    vim.notify("obsidian: cannot read template " .. tpl, vim.log.levels.ERROR)
+    vim.notify("obsidian: cannot read template " .. template_path, vim.log.levels.ERROR)
     return nil
   end
   return vim
@@ -272,11 +290,12 @@ function M.get_frontmatter(ctx)
 end
 
 --- Insert the rendered frontmatter template at the top of the buffer.
----@param buf? integer buffer id, defaults to current buffer
+--- @param buf? integer buffer id, defaults to current buffer
 function M.insert_frontmatter(buf)
   buf = buf or 0
+  local vault = M.get_vault(buf) or M.vaults[1]
   local title = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t:r")
-  local lines = M.get_frontmatter { title = title }
+  local lines = M.get_frontmatter { vault = vault, title = title }
   if not lines then
     return
   end
