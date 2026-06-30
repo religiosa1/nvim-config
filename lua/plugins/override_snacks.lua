@@ -1,5 +1,13 @@
 return {
   "folke/snacks.nvim",
+  -- Drop the snacks_picker git-diff binds (<leader>gd hunks, <leader>gD origin)
+  -- to free them for diffview
+  keys = {
+    { "<leader>gd", false }, -- Git Diff (hunks)
+    { "<leader>gD", false }, -- Git Diff (origin)
+    { "<leader>gi", false }, -- GitHub Issues (open)
+    { "<leader>gI", false }, -- GitHub Issues (all)
+  },
   ---@type snacks.Config
   opts = {
     styles = {

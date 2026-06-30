@@ -257,4 +257,19 @@ vim.keymap.set("n", "<leader>uV", function()
     end
   end
   vim.notify("Image rendering: " .. (cfg.enabled and "on" or "off"), vim.log.levels.INFO, { title = "Snacks image" })
-end, { desc = "Toggle image rendering on/off" })
+end, { desc = "Toggle image rendering" })
+
+--------------------------------------------------------------------------------
+-- Lazygit: move the root-dir float from <leader>gg to <leader>gG, freeing
+-- <leader>gg
+if vim.fn.executable("lazygit") == 1 then
+  vim.keymap.set("n", "<leader>gG", function()
+    Snacks.lazygit { cwd = LazyVim.root.git() }
+  end, { desc = "Lazygit (Root Dir)" })
+end
+
+-- -- Drop LazyVim's git-log binds (<leader>gl root, <leader>gL cwd)
+-- vim.keymap.del("n", "<leader>gl") -- Git Log
+-- vim.keymap.del("n", "<leader>gL") -- Git Log (CWD)
+-- vim.keymap.del("n", "<leader>gb") -- Git Blame Line
+-- vim.keymap.del("n", "<leader>gf") -- Git Current File History
