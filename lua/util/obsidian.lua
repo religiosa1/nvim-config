@@ -163,23 +163,61 @@ local function collect_dirs(root)
   return out
 end
 
---- Create a new note, typing the path with vault-rooted file completion.
+--- Vault root that M.complete_note_dir completes against. Set by M.new_note
+--- right before opening the input, since the completefunc (reached via v:lua)
+--- gets no context of its own.
+M._complete_root = nil
+
+--- Tab-completion source for M.new_note: vault-relative directory paths only
+--- (no files -- you pick the folder here, then type the note name).
+--- Prunes the same dirs as the folder picker (hidden dotdirs and
+--- M.ignored_dirs) by going through collect_dirs. Wired in as
+--- a `customlist` completion string.
+--- @param arg_lead string the partial path typed so far
+--- @return string[] matching dir paths, each with a trailing slash
+function M.complete_note_dir(arg_lead)
+  local root = M._complete_root
+  if not root then
+    return {}
+  end
+  local out = {}
+  for _, dir in ipairs(collect_dirs(root)) do
+    local rel = dir:sub(#root + 1):gsub("^/", "")
+    if rel ~= "" then
+      rel = rel .. "/"
+      if vim.startswith(rel, arg_lead) then
+        out[#out + 1] = rel
+      end
+    end
+  end
+  return out
+end
+
+--- Create a new note, typing the path with vault-rooted directory completion.
 --- Creates in the current vault, or the first vault if outside one.
 function M.new_note()
-  local vault = M.get_vault() or M.vaults[1]
+  local buf_vault = M.get_vault()
+  local vault = buf_vault or M.vaults[1]
   local root = vim.fn.expand(vault.path)
-  -- cd-to-vault so `completion = "file"` is rooted at the vault;
-  -- restored in the callback. Global cd (not lcd) so the input float's
-  -- completion reliably sees it. Upgrade to a customlist completefunc if the
-  -- cwd churn ever bites another plugin.
-  -- At any time, hit tab to trigger autocompletion in Snacks
-  local cwd = vim.fn.getcwd()
-  vim.cmd.cd(root)
+  -- Prefill with the current buffer's folder (relative to the vault root) so a
+  -- new note lands next to the one being viewed. Empty at the vault root or
+  -- when the buffer is outside a vault.
+  local default = ""
+  if buf_vault then
+    local buf_dir = vim.fs.dirname(vim.api.nvim_buf_get_name(0))
+    local rel = buf_dir:sub(#root + 1):gsub("^/", "")
+    if rel ~= "" then
+      default = rel .. "/"
+    end
+  end
+  -- "arg" passed to the complete_note_dir
+  M._complete_root = root
   Snacks.input.input({
     prompt = "Enter note name",
-    completion = "file",
+    default = default,
+    -- Complete directories only (not files), rooted at the vault and pruned to
+    completion = "customlist,v:lua.require'util.obsidian'.complete_note_dir",
   }, function(value)
-    vim.cmd.cd(cwd)
     create_or_open_note(root, value)
   end)
 end
