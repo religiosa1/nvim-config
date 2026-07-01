@@ -80,6 +80,7 @@ return {
       -- adding ]h to the existing ]c for consistency
       keymaps = {
         view = {
+          { "n", "<esc><esc>", "<cmd>DiffviewClose<cr>", { desc = "Close diffview" } },
           { "n", "]h", "]c", { desc = "Next diff hunk" } },
           { "n", "[h", "[c", { desc = "Prev diff hunk" } },
         },
@@ -92,6 +93,9 @@ return {
           { "n", "zR", diffViewCmd("normal! zR"), { desc = "Open all level folds in diff" } },
           { "n", "zm", diffViewCmd("normal! zm"), { desc = "Close all folds in diff" } },
           { "n", "zM", diffViewCmd("normal! zM"), { desc = "Close all level folds in diff" } },
+        },
+        file_history_panel = {
+          { "n", "<esc><esc>", "<cmd>DiffviewClose<cr>", { desc = "Close diffview" } },
         },
       },
       hooks = {
