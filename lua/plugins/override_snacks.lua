@@ -6,7 +6,8 @@ return {
     { "<leader>gd", false }, -- Git Diff (hunks)
     { "<leader>gD", false }, -- Git Diff (origin)
     { "<leader>gi", false }, -- GitHub Issues (open)
-    { "<leader>gI", false }, -- GitHub Issues (all)
+    { "<leader>gI", false }, -- GitHub Issues (All)
+    { "<leader>gL", false }, -- GitHub Issues (All)
   },
   ---@type snacks.Config
   opts = {

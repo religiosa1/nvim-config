@@ -268,8 +268,18 @@ if vim.fn.executable("lazygit") == 1 then
   end, { desc = "Lazygit (Root Dir)" })
 end
 
--- -- Drop LazyVim's git-log binds (<leader>gl root, <leader>gL cwd)
+-- Drop LazyVim's git-log binds: most are just shadowed by diffview, but gL we remove explicitly
 -- vim.keymap.del("n", "<leader>gl") -- Git Log
--- vim.keymap.del("n", "<leader>gL") -- Git Log (CWD)
+vim.keymap.del("n", "<leader>gL") -- Git Log (CWD)
 -- vim.keymap.del("n", "<leader>gb") -- Git Blame Line
 -- vim.keymap.del("n", "<leader>gf") -- Git Current File History
+vim.keymap.del({ "n", "x" }, "<leader>gY")
+vim.keymap.set({ "n", "x" }, "<leader>gy", function()
+  Snacks.gitbrowse {
+    open = function(url)
+      vim.fn.setreg("+", url)
+      vim.notify(url, vim.log.levels.INFO, { title = "Github link" })
+    end,
+    notify = false,
+  }
+end, { desc = "Copy Github Line Link" })

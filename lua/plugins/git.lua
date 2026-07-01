@@ -45,19 +45,29 @@ return {
         end,
       })
     end,
-    opts = {
-      mappings = {
-        commit_editor = {
-          ["<esc><esc>"] = "Close",
+    -- using a function to defer terminal colors capture (at plugin load, and not spec-eval when colors are still unset)
+    opts = function()
+      return {
+        highlight = {
+          red = vim.g.terminal_color_1,
+          green = vim.g.terminal_color_2,
+          yellow = vim.g.terminal_color_3,
+          blue = vim.g.terminal_color_4,
+          purple = vim.g.terminal_color_5,
         },
-        rebase_editor = {
-          ["<esc><esc>"] = "Close",
+        mappings = {
+          commit_editor = {
+            ["<esc><esc>"] = "Close",
+          },
+          rebase_editor = {
+            ["<esc><esc>"] = "Close",
+          },
+          status = {
+            ["<esc><esc>"] = "Close",
+          },
         },
-        status = {
-          ["<esc><esc>"] = "Close",
-        },
-      },
-    },
+      }
+    end,
     cmd = "Neogit",
     keys = {
       -- use kind replace if tabs are getting tiresome
@@ -81,11 +91,13 @@ return {
       keymaps = {
         view = {
           { "n", "<esc><esc>", "<cmd>DiffviewClose<cr>", { desc = "Close diffview" } },
+          { "n", "q", "<cmd>DiffviewClose<cr>", { desc = "Close diffview" } },
           { "n", "]h", "]c", { desc = "Next diff hunk" } },
           { "n", "[h", "[c", { desc = "Prev diff hunk" } },
         },
         file_panel = {
           { "n", "<esc><esc>", "<cmd>DiffviewClose<cr>", { desc = "Close diffview" } },
+          { "n", "q", "<cmd>DiffviewClose<cr>", { desc = "Close diffview" } },
           { "n", "]h", "]c", { desc = "Next diff hunk" } },
           { "n", "[h", "[c", { desc = "Prev diff hunk" } },
           -- fold/unfold without switching focus to diff view
@@ -96,6 +108,7 @@ return {
         },
         file_history_panel = {
           { "n", "<esc><esc>", "<cmd>DiffviewClose<cr>", { desc = "Close diffview" } },
+          { "n", "q", "<cmd>DiffviewClose<cr>", { desc = "Close diffview" } },
         },
       },
       hooks = {
@@ -119,7 +132,7 @@ return {
           --   vim.cmd("DiffviewClose")
           -- end
         end,
-        desc = "Toggle Diffview",
+        desc = "Diffview",
       },
       {
         "<leader>gD",
@@ -150,9 +163,9 @@ return {
         desc = "File history",
       },
       {
-        "<leader>gF",
+        "<leader>gl",
         "<cmd>DiffviewFileHistory<cr>",
-        desc = "File History (repo)",
+        desc = "Git Log",
       },
     },
   },
