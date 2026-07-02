@@ -8,6 +8,41 @@ local function diffViewCmd(cmd)
   end
 end
 
+--- Scroll the window under the *mouse pointer* (not the focused one), honoring
+--- scrollbind so both diff panels stay in sync even when the wheel is used over
+--- an unfocused window. Native mouse-wheel scrolls the window under the pointer
+--- directly, which bypasses scrollbind; <C-e>/<C-y> via win_execute don't.
+--- @param key string the scroll key, e.g. "<C-e>" or "<C-y>"
+local function scrollMouseWin(key)
+  local seq = "normal! 3" .. vim.keycode(key)
+  return function()
+    local winid = vim.fn.getmousepos().winid
+    if winid ~= 0 then
+      vim.fn.win_execute(winid, seq)
+    end
+  end
+end
+
+--- Global mouse-wheel maps that sync scrollbound windows. Installed only while a
+--- diffview is entered (see hooks) so normal per-window mouse scroll is
+--- unaffected elsewhere. Must be global, not buffer-local: a buffer-local map
+--- only fires for the *focused* buffer, so it can't act on an unfocused window
+--- the pointer happens to be over.
+local wheelMaps = {
+  ["<ScrollWheelDown>"] = scrollMouseWin("<C-e>"),
+  ["<ScrollWheelUp>"] = scrollMouseWin("<C-y>"),
+}
+local function setWheelMaps()
+  for lhs, rhs in pairs(wheelMaps) do
+    vim.keymap.set({ "n", "x" }, lhs, rhs, { desc = "Diff-synced scroll under mouse" })
+  end
+end
+local function delWheelMaps()
+  for lhs in pairs(wheelMaps) do
+    pcall(vim.keymap.del, { "n", "x" }, lhs)
+  end
+end
+
 return {
   {
     "NeogitOrg/neogit",
@@ -94,6 +129,8 @@ return {
           { "n", "q", "<cmd>DiffviewClose<cr>", { desc = "Close diffview" } },
           { "n", "]h", "]c", { desc = "Next diff hunk" } },
           { "n", "[h", "[c", { desc = "Prev diff hunk" } },
+          -- Synced mouse-wheel scroll is handled by global maps in the hooks
+          -- below (needs to fire over unfocused windows, so can't be buffer-local).
         },
         file_panel = {
           { "n", "<esc><esc>", "<cmd>DiffviewClose<cr>", { desc = "Close diffview" } },
@@ -114,9 +151,11 @@ return {
       hooks = {
         view_enter = function()
           vim.o.showtabline = 0
+          setWheelMaps()
         end,
         view_leave = function()
           vim.o.showtabline = 1
+          delWheelMaps()
         end,
       },
     },
