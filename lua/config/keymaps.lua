@@ -31,8 +31,8 @@ vim.keymap.set("i", "<C-ы>", "<C-o>dw")
 vim.keymap.set("i", "<C-s>", "<C-o>dw", { desc = "Delete forward word" })
 vim.keymap.set("i", "<C-ц>", "<C-w>")
 -- Vim normally uses C-d in insert mode to decrease indent, but this conflicts with our delete binding
--- So let's switch that to <C-y> which normally is a useless "Insert the character which is above the cursor."
-vim.keymap.set("i", "<C-y>", "<C-o><<", { silent = true })
+-- So let's switch that to <A-t>. <C-T> is already taken by ghostty and such
+vim.keymap.set("i", "<A-t>", "<C-o><<", { silent = true })
 -- for consistency with shell cursor jumps ctrl-a/ctrl-e in insert mode vim.keymap.set("i", "<C-a>", "<C-o>I", { silent = true })
 vim.keymap.set("i", "<C-e>", "<C-o>A", { silent = true })
 vim.keymap.set("i", "<A-f>", "<C-o>w", { silent = true })

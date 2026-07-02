@@ -6,6 +6,14 @@ return {
         trigger = {
           show_on_insert_on_trigger_character = false,
         },
+        list = {
+          selection = {
+            -- don't auto-select first item; nothing selected until I move into the list
+            preselect = false,
+            -- keep typed text in sync when navigating
+            auto_insert = true,
+          },
+        },
         accept = {
           -- not entirely sure I like it, keeping it here for maybe disabling later
           auto_brackets = {
@@ -51,8 +59,6 @@ return {
         ["<Down>"] = { "select_next", "fallback" },
         ["<C-k>"] = { "select_prev", "fallback" },
         ["<C-j>"] = { "select_next", "fallback" },
-        -- to avoid conflicts with our custom "decrease indent" keybinding
-        ["<C-y>"] = {},
       },
     },
   },
