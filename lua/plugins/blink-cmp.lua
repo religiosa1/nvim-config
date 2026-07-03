@@ -8,9 +8,7 @@ return {
         },
         list = {
           selection = {
-            -- don't auto-select first item; nothing selected until I move into the list
-            preselect = false,
-            -- keep typed text in sync when navigating
+            preselect = true,
             auto_insert = true,
           },
         },
