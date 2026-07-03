@@ -11,6 +11,8 @@ return {
         -- mermaid stuck in float-only and ignoring the <leader>uM inline/float
         -- toggle. Disabling render here lets snacks render + switch it like math.
         disable = { "mermaid" },
+        conceal_delimiters = false,
+        border = "none", -- to show backticks, otherwise we can always use "thick"
       },
       win_options = {
         -- https://github.com/MeanderingProgrammer/render-markdown.nvim/blob/e41b0002fe4196825450ab5a6343300c40791d51/README.md?plain=1#L639-L644
