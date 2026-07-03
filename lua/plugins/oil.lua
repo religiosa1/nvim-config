@@ -9,6 +9,22 @@ local function float_only_close()
   end
 end
 
+-- In float mode oil creates the preview window with focusable = false, so it
+-- can't be focused/scrolled directly (leaving the oil float closes it). Scroll
+-- the preview from inside the oil buffer instead, keeping focus (and the float).
+-- Falls back to scrolling the oil listing when no preview is open.
+local function scroll_preview(motion)
+  return function()
+    local keys = vim.api.nvim_replace_termcodes(motion, true, false, true)
+    local win = require("oil.util").get_preview_win()
+    if win then
+      vim.fn.win_execute(win, "normal! " .. keys)
+    else
+      vim.cmd("normal! " .. keys)
+    end
+  end
+end
+
 ---Absolute path of the entry under the cursor in an oil buffer.
 ---@return string
 local function get_selection_path()
@@ -40,6 +56,10 @@ return {
         q = { float_only_close, mode = "n", desc = "Close float window" },
         ["<Esc><Esc>"] = { float_only_close, mode = "n", desc = "Close float window" },
         ["<C-s>"] = false,
+        ["h"] = { "actions.parent", mode = "n", desc = "Go to parent directory" },
+        ["l"] = { "actions.select", mode = "n", desc = "Open file / enter directory" },
+        ["<C-d>"] = { scroll_preview("<C-d>"), mode = "n", desc = "Scroll preview/listing down" },
+        ["<C-u>"] = { scroll_preview("<C-u>"), mode = "n", desc = "Scroll preview/listing up" },
         ["g<C-v>"] = { "actions.select", opts = { vertical = true }, desc = "Open file in VSplit" },
         ["<leader>yy"] = {
           function()
@@ -99,6 +119,11 @@ return {
           mode = "n",
           desc = "Open current directory in mini.files",
         },
+      },
+      preview_win = {
+        -- Read the whole file, not just the first screen. fast_scratch (default)
+        -- only reads vim.o.lines lines, which breaks scrolling the preview.
+        preview_method = "scratch",
       },
       view_options = {
         show_hidden = true,
