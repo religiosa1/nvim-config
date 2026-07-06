@@ -6,6 +6,7 @@ return {
   "lewis6991/gitsigns.nvim",
   event = "LazyFile",
   opts = {
+    attach_to_untracked = true,
     on_attach = function(buffer)
       local gs = package.loaded.gitsigns
 
