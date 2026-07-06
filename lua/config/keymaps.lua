@@ -260,14 +260,6 @@ vim.keymap.set("n", "<leader>uV", function()
 end, { desc = "Toggle image rendering" })
 
 --------------------------------------------------------------------------------
--- Lazygit: move the root-dir float from <leader>gg to <leader>gG, freeing
--- <leader>gg
-if vim.fn.executable("lazygit") == 1 then
-  vim.keymap.set("n", "<leader>gG", function()
-    Snacks.lazygit { cwd = LazyVim.root.git() }
-  end, { desc = "Lazygit (Root Dir)" })
-end
-
 -- Drop LazyVim's git-log binds: most are just shadowed by diffview, but gL we remove explicitly
 -- vim.keymap.del("n", "<leader>gl") -- Git Log
 vim.keymap.del("n", "<leader>gL") -- Git Log (CWD)
