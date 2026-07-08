@@ -56,30 +56,38 @@ local function moment_to_strftime(fmt)
   return fmt
 end
 
---- Render Obsidian-style {{...}} template variables in a single line.
+---@class RenderTemplateArgs
+---@field lines string[] template lines
+---@field ctx? { title?: string } extra substitution context
+
+--- Render Obsidian-style template.
 --- Supports {{date}}, {{time}}, {{title}} and the {{date:FORMAT}} /
 --- {{time:FORMAT}} variants (FORMAT being moment.js tokens).
----@param str string
----@param ctx? { title?: string } extra substitution context
----@return string
-local function render_template(str, ctx)
-  ctx = ctx or {}
-  str = str:gsub("{{date:([^}]*)}}", function(fmt)
-    return os.date(moment_to_strftime(fmt))
-  end)
-  str = str:gsub("{{time:([^}]*)}}", function(fmt)
-    return os.date(moment_to_strftime(fmt))
-  end)
-  str = str:gsub("{{date}}", function()
-    return os.date("%Y-%m-%d")
-  end)
-  str = str:gsub("{{time}}", function()
-    return os.date("%H:%M")
-  end)
-  str = str:gsub("{{title}}", function()
-    return ctx.title or ""
-  end)
-  return str
+---@param args RenderTemplateArgs
+---@return string[] rendered template lines
+local function render_template(args)
+  local ctx = args.ctx or {}
+  return vim
+    .iter(args.lines)
+    :map(function(str)
+      str = str:gsub("{{date:([^}]*)}}", function(fmt)
+        return os.date(moment_to_strftime(fmt))
+      end)
+      str = str:gsub("{{time:([^}]*)}}", function(fmt)
+        return os.date(moment_to_strftime(fmt))
+      end)
+      str = str:gsub("{{date}}", function()
+        return os.date("%Y-%m-%d")
+      end)
+      str = str:gsub("{{time}}", function()
+        return os.date("%H:%M")
+      end)
+      str = str:gsub("{{title}}", function()
+        return ctx.title or ""
+      end)
+      return str
+    end)
+    :totable()
 end
 
 -- Shared snacks picker opts: search the first vault by default, with <a-w>
@@ -107,7 +115,7 @@ local function vault_scope_opts()
 end
 
 ---Open a picker, that searches a note by name
-function M.find_note()
+function M.open_note()
   Snacks.picker.files(vim.tbl_deep_extend("force", vault_scope_opts(), {
     live = true, -- setting live for case-insensitive non-latin search
   }))
@@ -140,7 +148,7 @@ local function create_or_open_note(dir, name)
   local is_buf_empty = vim.api.nvim_buf_line_count(buf_id) == 1
     and vim.api.nvim_buf_get_lines(buf_id, 0, 1, false)[1] == ""
   if is_buf_empty then
-    M.insert_frontmatter()
+    M.insert_template()
   end
 end
 
@@ -279,7 +287,7 @@ end
 --- @return Vault?
 function M.get_vault(buf)
   if #M.vaults == 0 then
-    error("No Obsidian vault is configured")
+    error("obsidian: no vault is configured")
   end
   local path = vim.api.nvim_buf_get_name(buf or 0)
   if path == "" then
@@ -302,42 +310,44 @@ function M.vault_paths()
     :totable()
 end
 
---- Read the frontmatter template and render its variables.
---- @param ctx { vault: Vault, title?: string }
---- @return string[]|nil lines or nil if the template can't be read
-function M.get_frontmatter(ctx)
-  if ctx.vault.template == false then
+---@class TemplateIdentifier
+---@field vault? Vault selected vault, or default vault if not provided
+---@field template? string template file name (no dir, with extension), default vault's template if undefined
+
+--- Get template body as an array of strings
+--- @param args? TemplateIdentifier
+--- @return string[]?
+local function get_template(args)
+  args = args or {}
+  local vault = args.vault or M.vaults[1]
+  if not vault then
+    error("obsidian: no vault is configured")
+  end
+  local template = args.template or vault.template or M.default_template
+  if not template then
     return nil
   end
-  local relative_template = ctx.vault.template or M.default_template
-  if not relative_template then
-    return nil
-  end
-  local template_path = vim.fn.expand(vim.fs.joinpath(ctx.vault.path, relative_template))
+  local template_path = vim.fn.expand(vim.fs.joinpath(vault.path, template))
   local ok, lines = pcall(vim.fn.readfile, template_path)
   if not ok then
-    vim.notify("obsidian: cannot read template " .. template_path, vim.log.levels.ERROR)
-    return nil
+    error("obsidian: cannot read template " .. template_path)
   end
-  return vim
-    .iter(lines)
-    :map(function(l)
-      return render_template(l, ctx)
-    end)
-    :totable()
+  return lines
 end
 
---- Insert the rendered frontmatter template at the top of the buffer.
---- @param buf? integer buffer id, defaults to current buffer
-function M.insert_frontmatter(buf)
-  buf = buf or 0
+--- Insert the rendered template into the buffer.
+--- @param template_path? string
+--- @param after? boolean insert template after cursor
+function M.insert_template(template_path, after)
+  local buf = 0
   local vault = M.get_vault(buf) or M.vaults[1]
+  local template_lines = get_template { vault = vault, template_path = template_path }
   local title = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t:r")
-  local lines = M.get_frontmatter { vault = vault, title = title }
+  local lines = render_template { lines = template_lines or {}, ctx = { title = title } }
   if not lines then
     return
   end
-  vim.api.nvim_buf_set_lines(buf, 0, 0, false, lines)
+  vim.api.nvim_put(lines, "l", after or false, true)
 end
 
 return M

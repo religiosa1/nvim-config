@@ -18,7 +18,7 @@ return {
           return
         end
         vim.keymap.set("n", "<leader>Nf", function()
-          Obsidian.insert_frontmatter(0)
+          Obsidian.insert_template()
         end, { buffer = args.buf, desc = "Insert frontmatter template" })
       end,
     })
@@ -26,7 +26,7 @@ return {
   keys = {
     {
       "<leader>No",
-      Obsidian.find_note,
+      Obsidian.open_note,
       desc = "Find obsidian note",
     },
     {
