@@ -19,7 +19,10 @@ return {
         end
         vim.keymap.set("n", "<leader>Nf", function()
           Obsidian.insert_template()
-        end, { buffer = args.buf, desc = "Insert frontmatter template" })
+        end, { buffer = args.buf, desc = "Insert default template" })
+        vim.keymap.set("n", "<leader>NF", function()
+          Obsidian.pick_and_insert_template()
+        end, { buffer = args.buf, desc = "Pick and insert template" })
       end,
     })
   end,

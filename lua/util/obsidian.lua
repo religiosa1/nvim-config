@@ -5,7 +5,8 @@ local M = {}
 --- @field name string name of the vault
 --- @field path string path to the vault
 --- @field inbox_note? string inbox note override for the vault
---- @field template? string | false default template override (false to disable)
+--- @field template_dir? string relative path to the template directory of the vault
+--- @field default_template? string | false default template override (false to disable)
 
 --- Configuration of vaults. At least one vault must be configured.
 --- @type Vault[]
@@ -19,8 +20,10 @@ M.vaults = {
 --- Relative path inside of a vault for the inbox note
 M.inbox_note = "!inbox.md"
 
---- Default template to use when creating a note, relative to the vault path
-M.default_template = "templates/frontmatter.md"
+--- Default template dir
+M.template_dir = "templates"
+--- Default template to use when creating a note, relative to the template dir
+M.default_template = "frontmatter.md"
 
 --- Folder names excluded from the new-note folder picker (in addition to any
 --- hidden dotdir). These hold non-note content you'd never target a note into.
@@ -157,18 +160,24 @@ end
 --- @param root string root path to traverse
 --- @return string[] list of dir paths
 local function collect_dirs(root)
-  local out = { root }
-  local function walk(dir)
-    for name, type in vim.fs.dir(dir) do
-      if type == "directory" and name:sub(1, 1) ~= "." and not vim.tbl_contains(M.ignored_dirs, name) then
-        local p = vim.fs.joinpath(dir, name)
-        out[#out + 1] = p
-        walk(p)
-      end
-    end
+  local is_ok_dir = function(dir_name)
+    local base = vim.fs.basename(dir_name)
+    return base:sub(1, 1) ~= "." and not vim.tbl_contains(M.ignored_dirs, base)
   end
-  walk(root)
-  return out
+  local dirs = vim
+    .iter(vim.fs.dir(root, {
+      depth = 30,
+      skip = is_ok_dir,
+    }))
+    :filter(function(name, type)
+      return type == "directory" and is_ok_dir(name)
+    end)
+    :map(function(name)
+      return vim.fs.joinpath(root, name)
+    end)
+    :totable()
+  table.insert(dirs, 1, root)
+  return dirs
 end
 
 --- Vault root that M.complete_note_dir completes against. Set by M.new_note
@@ -312,7 +321,7 @@ end
 
 ---@class TemplateIdentifier
 ---@field vault? Vault selected vault, or default vault if not provided
----@field template? string template file name (no dir, with extension), default vault's template if undefined
+---@field template_name? string template file name (relative to vault template_dir), default vault's template if undefined
 
 --- Get template body as an array of strings
 --- @param args? TemplateIdentifier
@@ -323,11 +332,18 @@ local function get_template(args)
   if not vault then
     error("obsidian: no vault is configured")
   end
-  local template = args.template or vault.template or M.default_template
-  if not template then
+  local template_dir = vault.template_dir or M.template_dir
+  local template_name = args.template_name
+  if template_name == nil then
+    template_name = vault.default_template
+  end
+  if template_name == nil then
+    template_name = M.default_template
+  end
+  if not template_name then -- false or nil
     return nil
   end
-  local template_path = vim.fn.expand(vim.fs.joinpath(vault.path, template))
+  local template_path = vim.fn.expand(vim.fs.joinpath(vault.path, template_dir, template_name))
   local ok, lines = pcall(vim.fn.readfile, template_path)
   if not ok then
     error("obsidian: cannot read template " .. template_path)
@@ -336,18 +352,46 @@ local function get_template(args)
 end
 
 --- Insert the rendered template into the buffer.
---- @param template_path? string
+--- @param template_name? string
 --- @param after? boolean insert template after cursor
-function M.insert_template(template_path, after)
+function M.insert_template(template_name, after)
   local buf = 0
   local vault = M.get_vault(buf) or M.vaults[1]
-  local template_lines = get_template { vault = vault, template_path = template_path }
+  local template_lines = get_template { vault = vault, template_name = template_name }
   local title = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(buf), ":t:r")
   local lines = render_template { lines = template_lines or {}, ctx = { title = title } }
   if not lines then
     return
   end
   vim.api.nvim_put(lines, "l", after or false, true)
+end
+
+--- Open a picker for templates and insert the rendered selected template into the buffer.
+--- @param after? boolean insert template after cursor
+function M.pick_and_insert_template(after)
+  local buf = 0
+  local vault = M.get_vault(buf) or M.vaults[1]
+  local template_dir = vault.template_dir or M.template_dir
+
+  local templates_path = vim.fn.expand(vim.fs.joinpath(vault.path, template_dir))
+  local templates = vim
+    .iter(vim.fs.dir(templates_path))
+    :filter(function(name, type)
+      return type == "file" and vim.endswith(name, ".md")
+    end)
+    :map(function(name)
+      return name
+    end)
+    :totable()
+
+  Snacks.picker.select(templates, {
+    prompt = "Select template",
+  }, function(selection)
+    if not selection then
+      return
+    end
+    M.insert_template(selection, after)
+  end)
 end
 
 return M
