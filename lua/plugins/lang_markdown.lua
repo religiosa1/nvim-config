@@ -127,6 +127,7 @@ return {
           end
 
           vim.api.nvim_create_autocmd({ "TextChanged", "InsertLeave", "CursorHold", "BufEnter" }, {
+            desc = "enabling codelens for markdow_oxide backreference count",
             buffer = bufnr,
             callback = function()
               if codelens_supported(bufnr) then

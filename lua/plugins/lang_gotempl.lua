@@ -4,6 +4,7 @@
 -- https://github.com/vrischmann/tree-sitter-templ
 
 vim.api.nvim_create_autocmd("FileType", {
+  desc = "setting correct indentation in go templ files",
   pattern = "templ",
   callback = function()
     vim.bo.expandtab = false

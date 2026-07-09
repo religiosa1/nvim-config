@@ -11,6 +11,7 @@ return {
     -- <leader>Nf is only meaningful inside a vault, so bind it buffer-locally
     -- when we enter a buffer that lives in one (keeps it out of the global map).
     vim.api.nvim_create_autocmd("BufEnter", {
+      desc = "Enable obsidian notes keymaps",
       group = vim.api.nvim_create_augroup("obsidian_inline", { clear = true }),
       pattern = "*.md",
       callback = function(args)

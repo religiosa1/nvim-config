@@ -4,6 +4,7 @@ return {
     ft = { "json", "jsonc" },
     config = function()
       vim.api.nvim_create_autocmd("FileType", {
+        desc = "Enable copy json-path keymaps",
         pattern = { "json", "jsonc" },
         callback = function()
           vim.keymap.set("n", "<leader>jp", function()

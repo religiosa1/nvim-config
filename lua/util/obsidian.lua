@@ -239,13 +239,6 @@ function M.new_note()
   end)
 end
 
---- Open the preconfigured inbox note
-function M.open_inbox_note()
-  local vault = M.get_vault() or M.vaults[1]
-  local inbox_note = vault.inbox_note or M.inbox_note
-  create_or_open_note(vim.fn.expand(vault.path), inbox_note)
-end
-
 --- Create a new note, fuzzy-selecting the target folder first.
 function M.new_note_in_dir()
   local vault = M.get_vault() or M.vaults[1]
@@ -264,6 +257,13 @@ function M.new_note_in_dir()
       create_or_open_note(dir, value)
     end)
   end)
+end
+
+--- Open the preconfigured inbox note
+function M.open_inbox_note()
+  local vault = M.get_vault() or M.vaults[1]
+  local inbox_note = vault.inbox_note or M.inbox_note
+  create_or_open_note(vim.fn.expand(vault.path), inbox_note)
 end
 
 --- Open current buffer in obsidian

@@ -27,6 +27,7 @@ return {
   },
   init = function()
     vim.api.nvim_create_autocmd("User", {
+      desc = "setting mini.files buffer extra functionality",
       pattern = "MiniFilesBufferCreate",
       callback = function(args)
         local MiniFiles = require("mini.files")
@@ -48,6 +49,7 @@ return {
         -- syncing on save
         vim.bo[buf_id].buftype = "acwrite"
         vim.api.nvim_create_autocmd("BufWriteCmd", {
+          desc = "Syncing mini.files buffer on save/write",
           buffer = buf_id,
           callback = function()
             MiniFiles.synchronize()

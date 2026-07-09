@@ -12,25 +12,61 @@
 -- pcall: the group only exists on first load, so a manual :luafile re-source
 -- of this file would otherwise error here and skip everything below.
 pcall(vim.api.nvim_del_augroup_by_name, "lazyvim_wrap_spell")
--- Enabling wrapping back though
+
 vim.api.nvim_create_autocmd("FileType", {
+  desc = "Enabling wrapping back for plainish text buffers",
   pattern = { "text", "plaintex", "typst", "gitcommit", "markdown" },
   callback = function()
     vim.opt_local.wrap = true
   end,
 })
 
--- vscode-style color markers (nvim v0.12+)
 -- vim.lsp.document_color.color_presentation() for switching between gex and rgb, etc
 -- Doing it in autocmd to avoid eagerly loading the full LSP thing
 vim.api.nvim_create_autocmd("LspAttach", {
+  desc = "Enable vscode-style color markers thorugh lsp",
   once = true,
   callback = function()
     vim.lsp.document_color.enable(true, nil, { style = "virtual" })
   end,
 })
 
--- Fold <details>...</details> blocks in markdown, initially closed.
+vim.api.nvim_create_autocmd("FileType", {
+  desc = "extra grug-far functionality",
+  pattern = { "grug-far" },
+  callback = function(args)
+    local buf_id = args.buf
+    -- we need to schedule, as grug-far sets the option to none on buf setup
+    vim.schedule(function()
+      vim.bo[buf_id].buftype = "acwrite"
+      -- also need a name for the buffer, or :w will complain
+      if vim.api.nvim_buf_get_name(buf_id) == "" then
+        vim.api.nvim_buf_set_name(buf_id, "grug-far://" .. buf_id)
+      end
+
+      vim.api.nvim_create_autocmd("BufWriteCmd", {
+        desc = "syncing grug-far on write",
+        buffer = buf_id,
+        callback = function()
+          -- checking we're in the grug-far buffer, so it won't randomly sync on :wall
+          if vim.api.nvim_get_current_buf() == buf_id then
+            require("grug-far").get_instance(0):sync_all()
+          end
+          vim.bo[buf_id].modified = false
+        end,
+      })
+      vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+        desc = "resetting grug-far modified flag back, so it doesn't bother us with confirmations",
+        buffer = buf_id,
+        callback = function()
+          vim.bo[buf_id].modified = false
+        end,
+      })
+    end)
+  end,
+})
+
+-- Slop <details>...</details> fold  blocks in markdown, initially closed.
 -- LazyVim keeps treesitter as the fold provider (folds sections/code), but the
 -- markdown parser emits <details> and </details> as two *separate* html_blocks,
 -- so it never folds the body between them. Compose on top of the treesitter
@@ -114,6 +150,8 @@ do
   end
 
   vim.api.nvim_create_autocmd("BufWinEnter", {
+    desc = "Enable markdown details folds",
+    pattern = { "markdown" },
     callback = function(args)
       activate(vim.api.nvim_get_current_win(), args.buf)
     end,
@@ -125,37 +163,3 @@ do
     activate(win, vim.api.nvim_win_get_buf(win))
   end
 end
-
--- syncing grug-far on write
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = { "grug-far" },
-  callback = function(args)
-    local buf_id = args.buf
-    -- we need to schedule, as grug-far sets the option to none on buf setup
-    vim.schedule(function()
-      vim.bo[buf_id].buftype = "acwrite"
-      -- also need a name for the buffer, or :w will complain
-      if vim.api.nvim_buf_get_name(buf_id) == "" then
-        vim.api.nvim_buf_set_name(buf_id, "grug-far://" .. buf_id)
-      end
-
-      vim.api.nvim_create_autocmd("BufWriteCmd", {
-        buffer = buf_id,
-        callback = function()
-          -- checking we're in the grug-far buffer, so it won't randomly sync on :wall
-          if vim.api.nvim_get_current_buf() == buf_id then
-            require("grug-far").get_instance(0):sync_all()
-          end
-          vim.bo[buf_id].modified = false
-        end,
-      })
-      -- dropping "modified" flag back on every change, so neovim doesn't bother me with confirmations
-      vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
-        buffer = buf_id,
-        callback = function()
-          vim.bo[buf_id].modified = false
-        end,
-      })
-    end)
-  end,
-})
