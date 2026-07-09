@@ -137,9 +137,9 @@ vim.api.nvim_create_user_command("MarkdownTableToBox", function(opts)
   vim.api.nvim_buf_set_lines(0, opts.line1 - 1, opts.line2, false, out)
 end, { range = true, desc = "Markdown table -> box table" })
 
-vim.keymap.set("x", "<leader>jt", ":<C-u>'<,'>MarkdownTableFromBox<CR>", {
+vim.keymap.set("x", "<leader>jb", ":<C-u>'<,'>MarkdownTableFromBox<CR>", {
   desc = "Clean out box-drawing characters",
 })
-vim.keymap.set("x", "<leader>jT", ":<C-u>'<,'>MarkdownTableToBox<CR>", {
+vim.keymap.set("x", "<leader>jB", ":<C-u>'<,'>MarkdownTableToBox<CR>", {
   desc = "Markdown table to box-drawing table",
 })
