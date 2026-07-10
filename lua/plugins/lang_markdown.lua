@@ -19,7 +19,7 @@ return {
         -- See :h 'conceallevel'
         conceallevel = {
           -- Defaults to getting conceallevel from opts, but its' set in autocmd, so overriding manually to 0
-          default = 0,
+          default = 0, -- default is vim.api.nvim_get_option_value('conceallevel', {})
           -- Used when being rendered, concealed text is completely hidden
           rendered = 3,
         },

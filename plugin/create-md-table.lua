@@ -3,7 +3,7 @@
 ---@return integer,integer
 local function tokenize_input(input)
   local values = {}
-  for token in input:gmatch("[^%sa-zA-Z,\"'`%[%]{}()=:;]+") do
+  for token in input:gmatch("[0-9]+") do
     local num = tonumber(token)
     if num ~= nil then
       table.insert(values, num)
@@ -69,12 +69,238 @@ local function create_table_lines(x, y)
   return lines
 end
 
+local function read_buffer_line(buf_id, line_num)
+  return vim.api.nvim_buf_get_lines(buf_id, line_num - 1, line_num, false)[1]
+end
+
+--- Check if a string is a markdown-table-row-like (starts with an optional indent + '|')
+--- @param line string
+--- @return boolean whether the line looks like a markdown table row
+local function is_table_row(line)
+  return line ~= nil and line:match("^%s*|") ~= nil
+end
+
+---@alias CursorPosition [integer, integer, integer, integer, integer]
+
+---@class TablePosition position of a markdown table in a buffer
+---@field line_start integer 1-based line of the header row
+---@field line_end integer 1-based line of the last table row (inclusive)
+
+---@class FindMarkdownTableOpts
+---@field search_mode 'forward' | 'backward' | 'exact' how to search -- forward or backward of cursor, or cursor must be exactly in a table
+---@field pos CursorPosition
+
+--- Search the closest markdown table from the current cursor position
+--- @param opts? FindMarkdownTableOpts
+--- @return TablePosition? position of table or nil, if nothing was found
+local function find_closest_markdown_table(opts)
+  opts = opts or {}
+  local pos = opts.pos or vim.fn.getcurpos()
+  local search_mode = opts.search_mode or "backward"
+  local cur = pos[2] - 1 -- 0-based cursor row
+
+  local ok, parser = pcall(vim.treesitter.get_parser, 0, "markdown")
+  if not ok or parser == nil then
+    return nil
+  end
+  local trees = parser:parse()
+  if trees == nil or trees[1] == nil then
+    return nil
+  end
+  local root = trees[1]:root()
+  local query = vim.treesitter.query.parse("markdown", "(pipe_table) @table")
+
+  local best, best_dist = nil, nil
+  for _, node in query:iter_captures(root, 0) do
+    local sr, _, er, ec = node:range()
+    -- a pipe_table's end usually points at the start of the following line
+    local last = (ec == 0 and er > sr) and (er - 1) or er
+
+    local candidate, dist = false, nil
+    if cur >= sr and cur <= last then
+      candidate, dist = true, 0
+    elseif search_mode == "backward" and last < cur then
+      candidate, dist = true, cur - last
+    elseif search_mode == "forward" and sr > cur then
+      candidate, dist = true, sr - cur
+    end
+
+    if candidate and (best_dist == nil or dist < best_dist) then
+      best_dist = dist
+      best = { line_start = sr + 1, line_end = last + 1 }
+    end
+  end
+
+  -- whitespace-only cells make the markdown grammar split one visual table into several
+  -- pipe_table nodes, so grow the range over the whole contiguous block of table rows
+  if best then
+    while best.line_start > 0 do
+      local prev_line = read_buffer_line(0, best.line_start - 1)
+      if not is_table_row(prev_line) then
+        break
+      end
+      best.line_start = best.line_start - 1
+    end
+    local nlines = vim.api.nvim_buf_line_count(0)
+    while best.line_end < nlines do
+      local next_line = read_buffer_line(0, best.line_end + 1)
+      if not is_table_row(next_line) then
+        break
+      end
+      best.line_end = best.line_end + 1
+    end
+  end
+  return best
+end
+
+---@class GetColumnUnderPosOpts
+---@field table_pos TablePosition
+---@field cursor_pos CursorPosition
+
+---Determines the column index under the cursor.
+---The rightmost separator is considered to be the last column. For the rest
+---of separators, cursor on the separator is considered to be a part of the col
+---next to it.
+---@param opts GetColumnUnderPosOpts
+---@return integer index of the current column, 1-based. 0 if no column is under a cursor
+local function get_column_under_pos(opts)
+  local pos = opts.cursor_pos
+  local row = pos[2] - 1 -- 0-based
+  local col = pos[3] -- 1-based byte column of the cursor
+  local line = vim.api.nvim_buf_get_lines(0, row, row + 1, false)[1]
+  if line == nil then
+    return 0
+  end
+
+  -- trimming the rightmost separator on the right
+  line = line:gsub("[^\\]|[^|]*$", "")
+
+  -- count unescaped '|' at or before the cursor; a pipe belongs to the cell on its right,
+  -- so the leading pipe yields column 1
+  local count = 0
+  local i = 1
+  while i <= col do
+    local c = line:sub(i, i)
+    if c == "\\" then
+      i = i + 2 -- skip the escaped char
+    else
+      if c == "|" then
+        count = count + 1
+      end
+      i = i + 1
+    end
+  end
+  return count
+end
+
+--- Split a table row into segments delimited by unescaped '|'.
+--- cells[1] is the text left of the leading pipe (usually indentation), cells[#cells]
+--- is the text right of the trailing pipe; the actual columns are cells[2 .. #cells-1].
+--- @param line string
+--- @return string[]
+local function split_row(line)
+  -- there's seemingly a discrepancy between how CommonMark and github-flavored
+  -- parsers are handling the escaped escapement r'\\|' vs '\|' --
+  -- but it's such an edge case that I just ignore it.
+  return vim.split(line, "[^\\]?|")
+end
+
+--- Rebuild a bordered row from its outer segments and inner columns
+--- @param cells string[] cells, as split_row returns it - with left and right extras
+--- @return string
+local function join_row(cells)
+  return table.concat(cells, "|")
+end
+
+---@class AddColumnOpts
+---@field table_pos TablePosition
+---@field column_idx integer
+---@field header_content? string
+
+--- Add a column to a markdown table
+--- @param opts AddColumnOpts
+local function add_column(opts)
+  local header_content = opts.header_content ~= nil and opts.header_content or "Header"
+  local table_pos = opts.table_pos
+  local lines = vim.api.nvim_buf_get_lines(0, table_pos.line_start - 1, table_pos.line_end, false)
+
+  local width = #header_content + 2
+
+  for line_n, line in ipairs(lines) do
+    local cells = split_row(line)
+    if #cells >= 2 then
+      -- deducting 1 garbage cols in the math.min clamp (one because we add another one afterwards)
+      local at = math.max(1, math.min(#cells - 1, opts.column_idx)) + 1
+      local content
+      if line_n == 1 then -- header line
+        content = " " .. header_content .. string.rep(" ", width - 1 - #header_content)
+      elseif line_n == 2 then -- header separator
+        content = " " .. string.rep("-", width - 2) .. " "
+      else
+        content = string.rep(" ", width)
+      end
+      table.insert(cells, at, content)
+      lines[line_n] = join_row(cells)
+    end
+  end
+
+  vim.api.nvim_buf_set_lines(0, table_pos.line_start - 1, table_pos.line_end, false, lines)
+end
+
+---@class DeleteColumnsOpts
+---@field table_pos TablePosition
+---@field column_idx integer
+
+--- Delete a column in a markdown table
+--- @param opts DeleteColumnsOpts
+local function delete_column(opts)
+  local table_pos = opts.table_pos
+  local lines = vim.api.nvim_buf_get_lines(0, table_pos.line_start - 1, table_pos.line_end, false)
+  if #lines == 0 then
+    return
+  end
+
+  local columns = vim
+    .iter(lines)
+    :map(function(row)
+      return split_row(row)
+    end)
+    :totable()
+
+  -- Maybe do that on per cell basis in the loop below? To account for messed up tables
+  local ncols = vim.iter(columns):fold(0, function(acc, cur)
+    -- -2 for left and right garbage before and after a row
+    return math.max(acc, #cur - 2)
+  end)
+
+  local col_idx = math.max(1, math.min(ncols, opts.column_idx))
+  for idx, cells in ipairs(columns) do
+    if #cells > 3 then -- we have some cell to remove
+      table.remove(cells, col_idx + 1)
+      lines[idx] = join_row(cells)
+    else -- the last cell, just concatenating left-right garbage without a separator
+      lines[idx] = cells[1] .. cells[#cells]
+    end
+  end
+
+  vim.api.nvim_buf_set_lines(0, table_pos.line_start - 1, table_pos.line_end, false, lines)
+end
+
+--- check if provided position is inside table position
+--- @param pos CursorPosition
+--- @param table_pos TablePosition
+--- @return boolean
+local function is_cursor_inside_table(pos, table_pos)
+  return pos[2] >= table_pos.line_start and pos[2] <= table_pos.line_end
+end
+
 vim.api.nvim_create_autocmd("FileType", {
   desc = "enabling table-drawing keymaps",
   pattern = { "text", "plaintext", "typst", "markdown" },
   callback = function(args)
     local buf_id = args.buf
-    vim.keymap.set({ "n" }, "<leader>jt", function()
+
+    vim.keymap.set({ "n" }, "<leader>jtt", function()
       local input_str = vim.fn.input {
         prompt = "Enter table size",
       }
@@ -87,6 +313,81 @@ vim.api.nvim_create_autocmd("FileType", {
     end, {
       buf = buf_id,
       desc = "Draw a markdown table",
+    })
+
+    vim.keymap.set({ "n" }, "<leader>jta", function()
+      local pos = vim.fn.getcurpos()
+
+      local table_pos = find_closest_markdown_table {
+        pos = pos,
+        search_mode = "backward",
+      }
+      if table_pos == nil then
+        vim.notify("No markdown table found")
+        return
+      end
+      local column_idx = is_cursor_inside_table(pos, table_pos)
+          and get_column_under_pos {
+            table_pos = table_pos,
+            cursor_pos = pos,
+          }
+        or math.huge
+      add_column {
+        table_pos = table_pos,
+        column_idx = column_idx,
+      }
+    end, {
+      buf = buf_id,
+      desc = "Add a markdown table column before",
+    })
+
+    vim.keymap.set({ "n" }, "<leader>jtA", function()
+      local pos = vim.fn.getcurpos()
+      local table_pos = find_closest_markdown_table {
+        pos = pos,
+        search_mode = "forward",
+      }
+      if table_pos == nil then
+        vim.notify("No markdown table found")
+        return
+      end
+      local current_column = is_cursor_inside_table(pos, table_pos)
+          and get_column_under_pos {
+            table_pos = table_pos,
+            cursor_pos = pos,
+          }
+        or 0
+      add_column {
+        table_pos = table_pos,
+        column_idx = current_column + 1,
+      }
+    end, {
+      buf = buf_id,
+      desc = "Add a markdown table column after",
+    })
+
+    vim.keymap.set({ "n" }, "<leader>jtd", function()
+      local pos = vim.fn.getcurpos()
+
+      local table_pos = find_closest_markdown_table {
+        pos = pos,
+        search_mode = "exact",
+      }
+      if table_pos == nil then
+        vim.notify("No markdown table found")
+        return
+      end
+      local current_column = get_column_under_pos {
+        table_pos = table_pos,
+        cursor_pos = pos,
+      }
+      delete_column {
+        table_pos = table_pos,
+        column_idx = current_column,
+      }
+    end, {
+      buf = buf_id,
+      desc = "Delete a markdown table column",
     })
   end,
 })
