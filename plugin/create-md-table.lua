@@ -80,7 +80,31 @@ local function is_table_row(line)
   return line ~= nil and line:match("^%s*|") ~= nil
 end
 
----@alias CursorPosition [integer, integer, integer, integer, integer]
+---Cursor position tuple. (as getpos returns it)
+---1. `bufnum` - buffer number
+---2. `lnum` - line number (1-indexed)
+---3. `col` - column number (0-indexed)
+---4. `off` - virtual offset
+---@alias CursorPosition [integer, integer, integer, integer ]
+
+--- @class SelectionCursorsPosition
+--- @field current CursorPosition current cursor position
+--- @field other_end? CursorPosition "other end" of selection in visual mode
+
+local visual_modes = { v = true, V = true, ["\22"] = true } -- \22 is <C-v>, blockwise
+
+--- get start-stop cursors position in visual mode, or current cursor in other modes
+--- @return SelectionCursorsPosition
+local function get_start_stop_cursors_pos()
+  ---@type SelectionCursorsPosition
+  local cursors = {
+    current = vim.fn.getpos("."),
+  }
+  if visual_modes[vim.fn.mode()] then
+    cursors.other_end = vim.fn.getpos("v")
+  end
+  return cursors
+end
 
 ---@class TablePosition position of a markdown table in a buffer
 ---@field line_start integer 1-based line of the header row
@@ -213,14 +237,13 @@ local function join_row(cells)
 end
 
 ---@class AddColumnOpts
----@field table_pos TablePosition
----@field column_idx integer
----@field header_content? string
+---@field table_pos TablePosition position of a md table in a buffer
+---@field column_idx integer index of a column to add
 
 --- Add a column to a markdown table
 --- @param opts AddColumnOpts
 local function add_column(opts)
-  local header_content = opts.header_content ~= nil and opts.header_content or "Header"
+  local header_content = "Header"
   local table_pos = opts.table_pos
   local lines = vim.api.nvim_buf_get_lines(0, table_pos.line_start - 1, table_pos.line_end, false)
 
@@ -248,10 +271,11 @@ local function add_column(opts)
 end
 
 ---@class DeleteColumnsOpts
----@field table_pos TablePosition
----@field column_idx integer
+---@field table_pos TablePosition position of the table in a buffer
+---@field column_idx integer index of column to remove
+---@field to_column_idx? integer end index when removing multiple columns
 
---- Delete a column in a markdown table
+--- Delete a column or multiple columns in a markdown table
 --- @param opts DeleteColumnsOpts
 local function delete_column(opts)
   local table_pos = opts.table_pos
@@ -274,12 +298,22 @@ local function delete_column(opts)
   end)
 
   local col_idx = math.max(1, math.min(ncols, opts.column_idx))
+  local end_col_idx = math.max(1, math.min(ncols, opts.to_column_idx or opts.column_idx))
+  if end_col_idx < col_idx then
+    col_idx, end_col_idx = end_col_idx, col_idx
+  end
+
   for idx, cells in ipairs(columns) do
-    if #cells > 3 then -- we have some cell to remove
-      table.remove(cells, col_idx + 1)
-      lines[idx] = join_row(cells)
-    else -- the last cell, just concatenating left-right garbage without a separator
-      lines[idx] = cells[1] .. cells[#cells]
+    -- calling remove multiple times for each column to remove, but always providing
+    -- the first col idx and just shifting the rest of the table
+    for _ = col_idx, end_col_idx do
+      if #cells > 3 then -- we have some cell to remove
+        table.remove(cells, col_idx + 1)
+        lines[idx] = join_row(cells)
+      else -- the last cell, just concatenating left-right garbage without a separator
+        lines[idx] = cells[1] .. cells[#cells]
+        break
+      end
     end
   end
 
@@ -366,11 +400,11 @@ vim.api.nvim_create_autocmd("FileType", {
       desc = "Add a markdown table column after",
     })
 
-    vim.keymap.set({ "n" }, "<leader>jtd", function()
-      local pos = vim.fn.getcurpos()
+    vim.keymap.set({ "n", "x" }, "<leader>jtd", function()
+      local cursors = get_start_stop_cursors_pos()
 
       local table_pos = find_closest_markdown_table {
-        pos = pos,
+        pos = cursors.current,
         search_mode = "exact",
       }
       if table_pos == nil then
@@ -379,11 +413,19 @@ vim.api.nvim_create_autocmd("FileType", {
       end
       local current_column = get_column_under_pos {
         table_pos = table_pos,
-        cursor_pos = pos,
+        cursor_pos = cursors.current,
       }
+      local end_column
+      if cursors.other_end ~= nil then
+        end_column = get_column_under_pos {
+          table_pos = table_pos,
+          cursor_pos = cursors.other_end,
+        }
+      end
       delete_column {
         table_pos = table_pos,
         column_idx = current_column,
+        to_column_idx = end_column or current_column,
       }
     end, {
       buf = buf_id,
