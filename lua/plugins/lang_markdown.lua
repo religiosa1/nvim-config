@@ -143,4 +143,67 @@ return {
       } -- end opts.servers.markdown_oxide
     end, -- end opts func
   },
+  {
+    "religiosa1/markdown-table.nvim",
+    -- dev = true,
+    -- dir = "~/Projects/markdown-table.nvim",
+    lazy = true,
+    ft = { "markdown", "text", "plaintext" },
+    init = function()
+      require("which-key").add {
+        { "<leader>jt", group = "Markdown table" },
+      }
+    end,
+    keys = {
+      {
+        "<leader>jtt",
+        function()
+          require("markdown-table").create_table()
+        end,
+        mode = { "n" },
+        desc = "Create a markdown table",
+      },
+      {
+        "<leader>jtd",
+        function()
+          require("markdown-table").delete_column { to_reg = true }
+        end,
+        mode = { "n", "x" },
+        desc = "Delete a markdown table column",
+      },
+      {
+        "<leader>jtA",
+        function()
+          require("markdown-table").paste_column { paste_mode = "before" }
+        end,
+        mode = { "n" },
+        desc = "Add a markdown table column before",
+      },
+      {
+        "<leader>jta",
+        function()
+          require("markdown-table").paste_column { paste_mode = "after" }
+        end,
+        "<Plug>(MarkdownTableAddColumnAfter)",
+        mode = { "n" },
+        desc = "Add a markdown table column after",
+      },
+      {
+        "<leader>jtP",
+        function()
+          require("markdown-table").paste_column { paste_mode = "before", from_reg = true }
+        end,
+        mode = { "n" },
+        desc = "Paste a markdown table column before",
+      },
+      {
+        "<leader>jtp",
+        function()
+          require("markdown-table").paste_column { paste_mode = "after", from_reg = true }
+        end,
+        mode = { "n" },
+        desc = "Paste a markdown table column after",
+      },
+    },
+  },
 }
