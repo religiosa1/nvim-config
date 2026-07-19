@@ -172,6 +172,14 @@ return {
         desc = "Delete a markdown table column",
       },
       {
+        "<leader>jtD",
+        function()
+          require("markdown-table").delete_column()
+        end,
+        mode = { "n", "x" },
+        desc = "Delete a markdown table column into a black hole",
+      },
+      {
         "<leader>jtA",
         function()
           require("markdown-table").paste_column { paste_mode = "before" }
