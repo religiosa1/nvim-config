@@ -88,16 +88,13 @@ local function open_float(opts)
   vim.wo[win].wrap = true
 
   -- Commit-on-leave: closing the float any way (save key, :q, focus elsewhere)
-  -- saves, unless a cancel key set the flag first. One save only, guarded.
-  local cancelled, done = false, false
+  -- saves. One save only, guarded. To discard, undo (u) before leaving.
+  local done = false
   local function commit()
     if done then
       return
     end
     done = true
-    if cancelled then
-      return
-    end
     opts.on_submit(vim.trim(table.concat(vim.api.nvim_buf_get_lines(buf, 0, -1, false), "\n")))
   end
   local function close()
@@ -113,14 +110,10 @@ local function open_float(opts)
       vim.schedule(close)
     end,
   })
-  local function cancel()
-    cancelled = true
-    close()
-  end
   vim.keymap.set({ "n", "i" }, "<C-s>", close, { buffer = buf, desc = "Save note" })
   vim.keymap.set("n", "<CR>", close, { buffer = buf, desc = "Save note" })
-  vim.keymap.set("n", "q", cancel, { buffer = buf, desc = "Cancel note" })
-  vim.keymap.set("n", "<esc>", cancel, { buffer = buf, desc = "Cancel note" })
+  vim.keymap.set("n", "q", close, { buffer = buf, desc = "Save note" })
+  vim.keymap.set("n", "<esc><esc>", close, { buffer = buf, desc = "Save note" })
   vim.cmd("startinsert")
 end
 
@@ -134,7 +127,7 @@ function M.add()
   end
   local idx, existing = find_note(loc)
   open_float {
-    title = existing and " edit note · leave saves, q cancels " or " new note · leave saves, q cancels ",
+    title = existing and " edit note · q or <esc><esc> to save " or " new note · q or <esc><esc> to save ",
     text = existing and existing.text or "",
     on_submit = function(text)
       vim.api.nvim_buf_clear_namespace(loc.bufnr, ns, loc.line - 1, loc.line)
