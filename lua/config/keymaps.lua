@@ -2,6 +2,29 @@
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
 
+-- Review notes: annotate diffview lines, export as markdown for a coding agent.
+-- See lua/util/review.lua. `add` no-ops outside a diffview; export/clear are global.
+local review = setmetatable({}, {
+  __index = function(_, k)
+    return require("util.review")[k]
+  end,
+})
+vim.keymap.set("n", "<leader>ra", function()
+  review.add()
+end, { desc = "Review: add note on line" })
+vim.keymap.set("n", "<leader>rx", function()
+  review.export()
+end, { desc = "Review: export notes (markdown)" })
+vim.keymap.set("n", "<leader>rc", function()
+  review.clear()
+end, { desc = "Review: clear notes" })
+vim.keymap.set("n", "]r", function()
+  review.jump(1)
+end, { desc = "Review: next note" })
+vim.keymap.set("n", "[r", function()
+  review.jump(-1)
+end, { desc = "Review: prev note" })
+
 -- mapping <C-space> to noop, so we can switch keyboard layouts with it not affecting anything else
 -- incremental treesitter is on S, see ../plugins/override_flash.lua:11
 vim.keymap.set({ "n", "o", "x", "i" }, "<C-space>", "<nop>", { noremap = true })
