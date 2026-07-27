@@ -34,6 +34,8 @@ vim.keymap.set("i", "<C-@>", "<nop>", { noremap = true })
 
 -- $ in visual mode is stupid, as it selects trailing CR, as well. remapping to g_
 vim.keymap.set("x", "$", "g_")
+-- mapping Ё to ~ -- switch register under the cursor
+vim.keymap.set("n", "Ё", "~")
 
 -- helix-like combinations for start-end of the line on the home row
 vim.keymap.set({ "n", "o", "x" }, "gh", "^")
