@@ -47,8 +47,15 @@ return {
         ["<A-m>"] = { "show_documentation", "hide_documentation" },
         ["<C-p>"] = { "select_prev", "fallback_to_mappings" },
         ["<C-n>"] = { "show", "select_next", "fallback_to_mappings" },
-        ["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
-        ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
+        -- <Tab>/<S-Tab> are owned by mini.keymap (snippet -> menu -> pair/tsnode
+        -- jump -> indent). blink maps buffer-locally and would shadow the global
+        -- mini mapping, so it has to give the key up entirely.
+        ["<Tab>"] = {},
+        ["<S-Tab>"] = {},
+
+        -- close the menu without leaving insert mode -- InsertLeave moves the
+        -- cursor off the tabstop, which kills the vim.snippet session
+        ["<Esc>"] = { "cancel", "fallback" },
 
         -- ["<Up>"] = { "snippet_forward", "fallback" },
         -- ["<Down>"] = { "snippet_backward", "fallback" },
