@@ -174,11 +174,15 @@ end
 vim.keymap.set("n", "<C-u>", scroll_center("<C-u>"))
 vim.keymap.set("n", "<C-d>", scroll_center("<C-d>"))
 
--- compatibility with vim-surround for mini.surrounding plugin
+-- compatibility with vim-surround for mini.surrounding plugin -- for cyrillic as well
 vim.keymap.set("n", "ys", "gsa", { remap = true, desc = "Add surrounding" })
+vim.keymap.set("n", "ны", "gsa", { remap = true })
 vim.keymap.set("n", "ds", "gsd", { remap = true, desc = "Delete surrounding" })
+vim.keymap.set("n", "вы", "gsd", { remap = true })
 vim.keymap.set("n", "cs", "gsr", { remap = true, desc = "Replace surrounding" })
+vim.keymap.set("n", "сы", "gsr", { remap = true })
 vim.keymap.set("x", "S", "gsa", { remap = true, desc = "Add surrounding" })
+vim.keymap.set("x", "Ы", "gsa", { remap = true })
 
 -- Bufferline move buffers around and a shorter "pick buffer"
 vim.keymap.set("n", "<A-H>", "<cmd>BufferLineMovePrev<cr>")
