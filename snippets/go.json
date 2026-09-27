@@ -4,18 +4,27 @@
 		"description": "Panic with Not Implemented error",
 		"body": ["panic(\"${1:Not implemented}\");"]
 	},
+	"ServeHTTP handler": {
+		"prefix": ["fs", "func serve", "ServeHTTP"],
+		"description": "ServeHTTP handler",
+		"body": [
+			"func ($1) ${2:ServeHTTP}(w http.ResponseWriter, r *http.Request) {",
+			"\t$3",
+			"}"
+		]
+	},
 	"if err != nil return err": {
 		"prefix": "ie",
 		"body": "if ${1:err} != nil {\n\treturn ${1:err}\n}",
 		"description": "Snippet for if err != nil without value"
 	},
 	"if err != nil return fmt.Error()": {
-		"prefix": "ief",
-		"body": "if ${1:err} != nil {\n\treturn fmt.Errorf(\"$2: %w\", ${1:err})\n}",
-		"description": "Snippet for if err != nil without value"
+		"prefix": ["ief", "if err != nil"],
+		"body": "if ${1:err} != nil {\n\treturn ${2:nil}, fmt.Errorf(\"${3:error occured}: %w\", ${1:err})\n}",
+		"description": "Snippet for if err != nil with value and fmt.Errorf"
 	},
 	"if err != nil return value,err": {
-		"prefix": ["if err != nil", "ier"],
+		"prefix": "ier",
 		"body": "if ${1:err} != nil {\n\treturn ${2:nil}, ${1:err}\n}",
 		"description": "Snippet for if err != nil with value"
 	},
@@ -27,12 +36,12 @@
 	"if err != nil t.Fatalf()": {
 		"prefix": "it",
 		"description": "Snippet for if err != nil in tests",
-		"body": "if ${1:err} != nil {\n\tt.Fatalf(\"$2: %s\", ${1:err})\n}"
+		"body": "if ${1:err} != nil {\n\tt.Fatalf(\"$2: %v\", ${1:err})\n}"
 	},
 	"if err != nil t.Errorf()": {
 		"prefix": "ite",
 		"description": "Snippet for if err != nil in tests",
-		"body": "if ${1:err} != nil {\n\tt.Errorf(\"$2: %s\", ${1:err})\n}"
+		"body": "if ${1:err} != nil {\n\tt.Errorf(\"$2: %v\", ${1:err})\n}"
 	},
 	"go func(){}()": {
 		"prefix": ["go func()", "gf"],
