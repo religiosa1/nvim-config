@@ -179,6 +179,13 @@ function M.to_markdown()
   return table.concat(out, "\n")
 end
 
+--- Yank review notes to the register
+function M.yank()
+  local md = M.to_markdown()
+  vim.fn.setreg("+", md)
+  vim.notify("Review copied", vim.log.levels.INFO)
+end
+
 --- Export notes to a scratch markdown buffer and copy them to the + register.
 function M.export()
   local md = M.to_markdown()
