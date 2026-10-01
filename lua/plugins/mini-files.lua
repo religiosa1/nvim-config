@@ -1,3 +1,7 @@
+local openMiniFiles = function()
+  require("mini.files").open(vim.api.nvim_buf_get_name(0), true)
+end
+
 return {
   "nvim-mini/mini.files",
   lazy = true,
@@ -19,10 +23,12 @@ return {
   keys = {
     {
       "<leader>o",
-      function()
-        require("mini.files").open(vim.api.nvim_buf_get_name(0), true)
-      end,
+      openMiniFiles,
       desc = "Open mini.files (Directory of Current File)",
+    },
+    {
+      "<leader>щ",
+      openMiniFiles,
     },
   },
   init = function()
@@ -140,6 +146,17 @@ return {
             vim.notify("No file or directory selected", vim.log.levels.WARN)
           end
         end, { buffer = buf_id, desc = "Open file in VSplit" })
+
+        -- cyrillic mappings for main nav
+        vim.keymap.set("n", "р", function()
+          MiniFiles.go_out()
+        end, { buffer = buf_id })
+        vim.keymap.set("n", "д", function()
+          MiniFiles.go_in { close_on_file = false }
+        end, { buffer = buf_id })
+        vim.keymap.set("n", "Д", function()
+          MiniFiles.go_in { close_on_file = true }
+        end, { buffer = buf_id })
       end,
     })
   end,

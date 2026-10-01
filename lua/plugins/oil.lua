@@ -58,6 +58,12 @@ return {
         ["<C-s>"] = false,
         ["h"] = { "actions.parent", mode = "n", desc = "Go to parent directory" },
         ["l"] = { "actions.select", mode = "n", desc = "Open file / enter directory" },
+        ["L"] = { "actions.select", mode = "n" }, -- alias
+        -- cyrillic aliases for nav
+        ["р"] = { "actions.parent", mode = "n", desc = "Go to parent directory" },
+        ["д"] = { "actions.select", mode = "n", desc = "Open file / enter directory" },
+        ["Д"] = { "actions.select", mode = "n", desc = "Open file / enter directory" },
+        --  end cyrillic aliases
         ["<C-d>"] = { scroll_preview("<C-d>"), mode = "n", desc = "Scroll preview/listing down" },
         ["<C-u>"] = { scroll_preview("<C-u>"), mode = "n", desc = "Scroll preview/listing up" },
         ["g<C-v>"] = { "actions.select", opts = { vertical = true }, desc = "Open file in VSplit" },
@@ -154,6 +160,13 @@ return {
         --   end
         -- end,
         desc = "Open Oil in the current folder",
+        mode = { "n" },
+        silent = true,
+      },
+      -- cyrillic version of that as well
+      {
+        "<leader>Щ",
+        "<cmd>lua require('oil').toggle_float()<CR>",
         mode = { "n" },
         silent = true,
       },
