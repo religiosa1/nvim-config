@@ -49,14 +49,40 @@ M.copy_files_to_clipboard = function(paths)
   end
 end
 
+---Yank text into the system register and notify.
+---@param text string
+---@param title string notification title
+local function yank_text(text, title)
+  vim.fn.setreg("+", text)
+  vim.notify(text, vim.log.levels.INFO, { title = title, ft = "text" })
+end
+
 ---Yank a path into the system register and notify, applying a modifier first.
 ---@param path string absolute path
 ---@param modifier string fnamemodify modifier, e.g. ":." for relative, ":p" for absolute
 ---@param title string notification title
 local function yank_path(path, modifier, title)
-  local result = vim.fn.fnamemodify(path, modifier)
-  vim.fn.setreg("+", result)
-  vim.notify(result, vim.log.levels.INFO, { title = title, ft = "text" })
+  yank_text(vim.fn.fnamemodify(path, modifier), title)
+end
+
+---Get `target` path relative to `base` directory.
+---Unlike vim.fs.relpath, walks up with ".." when `base` isn't an ancestor of `target`.
+---@param base string absolute directory path
+---@param target string absolute path
+---@return string
+local function relative_to(base, target)
+  local base_parts = vim.split(vim.fs.normalize(base), "/", { trimempty = true })
+  local target_parts = vim.split(vim.fs.normalize(target), "/", { trimempty = true })
+  local common = 0
+  while common < #base_parts and common < #target_parts and base_parts[common + 1] == target_parts[common + 1] do
+    common = common + 1
+  end
+  local parts = {}
+  for _ = common + 1, #base_parts do
+    parts[#parts + 1] = ".."
+  end
+  vim.list_extend(parts, target_parts, common + 1)
+  return #parts == 0 and "." or table.concat(parts, "/")
 end
 
 ---Yank a file's path name into the system register
@@ -69,6 +95,13 @@ end
 ---@param path string absolute path
 M.yank_relative_path = function(path)
   yank_path(path, ":.", "Yanked relative path")
+end
+
+---Yank a file's path relative to the base directory into the system register.
+---@param path string absolute path
+---@param base string absolute directory path
+M.yank_path_relative_to = function(path, base)
+  yank_text(relative_to(base, path), "Yanked path relative to buffer")
 end
 
 ---Yank a file's absolute path into the system register.

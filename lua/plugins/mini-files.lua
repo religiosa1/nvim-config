@@ -76,7 +76,17 @@ return {
 
         vim.keymap.set("n", "<leader>yy", function()
           FileUtils.yank_relative_path(get_selection_path())
-        end, { buffer = buf_id, desc = "Yank relative file path" })
+        end, { buffer = buf_id, desc = "Yank file path relative to ROOT" })
+
+        vim.keymap.set("n", "<leader>yr", function()
+          local target_buf = vim.api.nvim_win_get_buf(MiniFiles.get_explorer_state().target_window)
+          local target_name = vim.api.nvim_buf_get_name(target_buf)
+          if target_name == "" or vim.bo[target_buf].buftype ~= "" then
+            vim.notify("Target buffer is not a file", vim.log.levels.WARN)
+            return
+          end
+          FileUtils.yank_path_relative_to(get_selection_path(), vim.fs.dirname(target_name))
+        end, { buffer = buf_id, desc = "Yank file path relative to buf" })
 
         vim.keymap.set("n", "<leader>yY", function()
           FileUtils.yank_absolute_path(get_selection_path())
