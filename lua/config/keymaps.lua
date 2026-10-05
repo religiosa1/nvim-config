@@ -52,6 +52,10 @@ vim.keymap.set({ "n", "o", "x" }, "пд", "g_")
 vim.keymap.set("n", "<C-q>", "q", { noremap = true, desc = "Record macro" })
 vim.keymap.set("n", "q", "<nop>", { noremap = true })
 vim.keymap.set("n", "й", "<nop>", { noremap = true })
+-- keep cmdline-window history reachable
+vim.keymap.set("n", "q:", "q:", { noremap = true, desc = "Command history window" })
+vim.keymap.set("n", "q/", "q/", { noremap = true, desc = "Search history window" })
+vim.keymap.set("n", "q?", "q?", { noremap = true, desc = "Search history window (backward)" })
 
 vim.keymap.set("i", "<C-в>", "<Delete>")
 vim.keymap.set("i", "<C-d>", "<Delete>", { desc = "Delete forward" })
