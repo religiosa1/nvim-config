@@ -59,9 +59,11 @@ return {
   -- default iamcco/markdown-preview.nvim is basically abandonware at this point,
   -- it has an old mermaid version, which doesn't render half of things I need
   -- instead using this previewer which uses the same naming
+  -- markdown-preview was renamed to mdkite to avoid conflicts, but we're still
+  -- fine with command only
   {
-    "selimacerbas/markdown-preview.nvim",
-    dependencies = { "selimacerbas/live-server.nvim" },
+    "selimacerbas/mdkite.nvim",
+    dependencies = { "selimacerbas/kitehost.nvim" },
     lazy = true,
     keys = false, -- disabling any keybindings, need to call the command explicitly
   },
