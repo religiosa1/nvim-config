@@ -10,5 +10,13 @@ return {
     { "<leader>rx", function() require("review").clear() end, desc = "clear notes" },
     { "]r", function() require("review").jump(1) end, desc = "next review note" },
     { "[r", function() require("review").jump(-1) end, desc = "prev review note" },
+    { 
+      "<leader>rq", 
+      function() 
+        require("review").quickfix() 
+        vim.cmd.copen() -- or vim.cmd("Trouble qflist")
+      end,
+      desc = "Review notes to quickfix",
+    },
   },
 }
