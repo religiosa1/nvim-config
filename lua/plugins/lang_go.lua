@@ -54,20 +54,14 @@ end, { nargs = "?", desc = "Get or set go build tags (use `-` arg to clear)" })
 -- nvim maps .tmpl to the generic "template" filetype by default
 vim.filetype.add { extension = { tmpl = "gotmpl" } }
 
--- Resolves host language from the inner extension (foo.html.tmpl -> html),
+-- Resolves host language from the inner extension (foo.yaml.tmpl -> yaml), defaulting to html,
 -- used by queries/gotmpl/injections.scm to inject it into the template text.
 vim.treesitter.query.add_directive("set-gotmpl-host-lang!", function(_, _, source, _, metadata)
   if type(source) ~= "number" then
     return
   end
-  local name = vim.api.nvim_buf_get_name(source)
-  if not name:match("%.[^./]+%.tmpl$") then
-    return
-  end
-  local host_ft = vim.filetype.match { filename = name:sub(1, -#".tmpl" - 1) }
-  if host_ft then
-    metadata["injection.language"] = host_ft
-  end
+  local name = vim.api.nvim_buf_get_name(source):gsub("%.tmpl$", "")
+  metadata["injection.language"] = vim.filetype.match { filename = name } or "html"
 end, { force = true })
 
 return {
@@ -101,9 +95,11 @@ return {
         -- response even though it does support semantic tokens.
         gopls = function(_, opts)
           Snacks.util.lsp.on({ name = "gopls" }, function(buffer, client)
-            -- gopls marks whole {{ }} actions as "macro", painting over treesitter highlights
+            -- gopls marks whole {{ }} actions as "macro", painting over treesitter highlights,
+            -- and reports every raw text chunk as a reference when the cursor is outside {{ }}
             if vim.bo[buffer].filetype == "gotmpl" then
               vim.lsp.semantic_tokens.enable(false, { bufnr = buffer, client_id = client.id })
+              vim.b[buffer].snacks_words = false
               return
             end
             if not client.server_capabilities.semanticTokensProvider then
