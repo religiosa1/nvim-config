@@ -51,7 +51,35 @@ vim.api.nvim_create_user_command("GoTags", function(opts)
   end
 end, { nargs = "?", desc = "Get or set go build tags (use `-` arg to clear)" })
 
+-- nvim maps .tmpl to the generic "template" filetype by default
+vim.filetype.add { extension = { tmpl = "gotmpl" } }
+
+-- Resolves host language from the inner extension (foo.html.tmpl -> html),
+-- used by queries/gotmpl/injections.scm to inject it into the template text.
+vim.treesitter.query.add_directive("set-gotmpl-host-lang!", function(_, _, source, _, metadata)
+  if type(source) ~= "number" then
+    return
+  end
+  local name = vim.api.nvim_buf_get_name(source)
+  if not name:match("%.[^./]+%.tmpl$") then
+    return
+  end
+  local host_ft = vim.filetype.match { filename = name:sub(1, -#".tmpl" - 1) }
+  if host_ft then
+    metadata["injection.language"] = host_ft
+  end
+end, { force = true })
+
 return {
+  {
+    "nvim-treesitter/nvim-treesitter",
+    -- https://github.com/ngalaiko/tree-sitter-go-template
+    opts = function(_, opts)
+      vim.list_extend(opts.ensure_installed, {
+        "gotmpl",
+      })
+    end,
+  },
   {
     "neovim/nvim-lspconfig",
     opts = {
@@ -72,7 +100,12 @@ return {
         -- Gopls bug: gopls doesn't set semanticTokensProvider in its initialize
         -- response even though it does support semantic tokens.
         gopls = function(_, opts)
-          Snacks.util.lsp.on({ name = "gopls" }, function(_, client)
+          Snacks.util.lsp.on({ name = "gopls" }, function(buffer, client)
+            -- gopls marks whole {{ }} actions as "macro", painting over treesitter highlights
+            if vim.bo[buffer].filetype == "gotmpl" then
+              vim.lsp.semantic_tokens.enable(false, { bufnr = buffer, client_id = client.id })
+              return
+            end
             if not client.server_capabilities.semanticTokensProvider then
               local semantic = vim.tbl_get(client, "config", "capabilities", "textDocument", "semanticTokens")
               if semantic then
