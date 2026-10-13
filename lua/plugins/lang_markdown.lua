@@ -222,6 +222,34 @@ return {
         mode = { "n" },
         desc = "Paste a markdown table column after",
       },
+      {
+        "<leader>jty",
+        function()
+          require("markdown-table").yank_converted { direction = "to_tsv", notify = true }
+        end,
+        mode = { "n", "x" },
+        desc = "Yank TSV representation",
+      },
+      {
+        "<leader>jtY",
+        function()
+          require("markdown-table").yank_converted {
+            direction = "to_tsv",
+            notify = true,
+            skip_header = true,
+          }
+        end,
+        mode = { "n", "x" },
+        desc = "Yank TSV without header",
+      },
+      {
+        "<leader>jtc",
+        function()
+          require("markdown-table").convert_table()
+        end,
+        mode = { "n", "x" },
+        desc = "Toggle between TSV and a markdown table",
+      },
     },
   },
 }
