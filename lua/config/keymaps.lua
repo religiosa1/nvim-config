@@ -285,3 +285,7 @@ vim.keymap.set({ "n", "x" }, "<leader>gy", function()
     notify = false,
   }
 end, { desc = "Copy Github Line Link" })
+
+-- Scratch buffers with a filetype
+vim.keymap.set("n", "<leader>fm", "<cmd>enew | setlocal ft=markdown<cr>", { desc = "New Markdown Buffer" })
+vim.keymap.set("n", "<leader>fj", "<cmd>enew | setlocal ft=json<cr>", { desc = "New JSON Buffer" })

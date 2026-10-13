@@ -21,6 +21,9 @@ return {
     return opts
   end,
   keys = {
+    -- drop LazyVim extra's binds; <leader>fm is a new markdown buffer, see config/keymaps.lua
+    { "<leader>fm", false },
+    { "<leader>fM", false },
     {
       "<leader>o",
       openMiniFiles,
