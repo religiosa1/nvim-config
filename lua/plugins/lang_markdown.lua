@@ -89,6 +89,14 @@ return {
             },
           }
         ),
+        -- skip nameless buffers (e.g. <leader>fm scratch): oxide panics on a URI
+        -- without a file stem ("file should have file stem").
+        -- To get LSP in a scratch buffer: `:w name.md` then `:e` to reattach.
+        root_dir = function(bufnr, on_dir)
+          if vim.api.nvim_buf_get_name(bufnr) ~= "" then
+            on_dir(vim.fs.root(bufnr, { ".git", ".obsidian", ".moxide.toml" }))
+          end
+        end,
         on_attach = function(client, bufnr)
           -- markdown_oxide's semantic tokens deadlock nvim: typing inside a
           -- partial link like `[x](` triggers a semanticTokens/full request that
