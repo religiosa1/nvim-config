@@ -58,6 +58,13 @@ return {
         ["<C-s>"] = false,
         ["<C-d>"] = { scroll_preview("<C-d>"), mode = "n", desc = "Scroll preview/listing down" },
         ["<C-u>"] = { scroll_preview("<C-u>"), mode = "n", desc = "Scroll preview/listing up" },
+        -- nav
+        ["H"] = { "actions.parent", mode = "n", desc = "Go to parent directory" },
+        ["L"] = { "actions.select", mode = "n", desc = "Open file / enter directory" },
+        -- cyrillic aliases for nav
+        ["Р"] = { "actions.parent", mode = "n", desc = "Go to parent directory" },
+        ["Д"] = { "actions.select", mode = "n", desc = "Open file / enter directory" },
+        -- end nav
         ["g<C-v>"] = { "actions.select", opts = { vertical = true }, desc = "Open file in VSplit" },
         ["<leader>yy"] = {
           function()

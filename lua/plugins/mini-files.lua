@@ -11,7 +11,7 @@ return {
       -- default is "@"
       reveal_cwd = ";",
       -- default is "=",
-      synchronize = "<CR>",
+      -- synchronize = "<CR>",
     })
     -- Whether to use for editing directories.
     -- I prefer using Oil as a dir viewer, this is commented out just for the reference
@@ -47,13 +47,10 @@ return {
           { "<leader>y", group = "Yank file path", buffer = buf_id },
         }
 
-        -- apparently, I'm too used to enter being sync now.
-        -- enter is also "go_in_plus", in addition to the default "L"
-        -- vim.keymap.set("n", "<cr>", function()
-        --   MiniFiles.go_in({
-        --     close_on_file = true,
-        --   })
-        -- end, { buffer = buf_id, desc = "Yank relative file path" })
+        -- enter is "go_in_plus" (same as "L"), consistent with oil; sync via "=" or :w
+        vim.keymap.set("n", "<cr>", function()
+          MiniFiles.go_in { close_on_file = true }
+        end, { buffer = buf_id, desc = "Go in plus" })
 
         -- syncing on save
         vim.bo[buf_id].buftype = "acwrite"
