@@ -126,7 +126,10 @@ return {
     {
       "<leader>gd",
       function()
-        vim.cmd("DiffviewToggle")
+        -- Clean tree has nothing to show, so review the last commit instead
+        local closing = require("diffview.lib").get_current_view() ~= nil
+        local clean = not closing and vim.fn.system({ "git", "status", "--porcelain" }) == ""
+        vim.cmd(clean and "DiffviewToggle HEAD~1..HEAD" or "DiffviewToggle")
         -- If we want to not show tabs we can do something like this instead.
         -- if next(require("diffview.lib").views) == nil then
         --   vim.cmd("DiffviewOpen")
