@@ -43,6 +43,35 @@ local function delWheelMaps()
   end
 end
 
+--- Branch a PR from the current one would target: the remote on main/master,
+--- the PR base if a PR exists, otherwise the local branch with the closest fork point.
+--- @return string|nil
+local function baseBranch()
+  local current = vim.fn.systemlist({ "git", "branch", "--show-current" })[1]
+  if current == "main" or current == "master" then
+    local upstream = vim.fn.systemlist({ "git", "rev-parse", "--abbrev-ref", "@{upstream}" })[1]
+    return vim.v.shell_error == 0 and upstream or nil
+  end
+
+  local prBase = vim.fn.systemlist({ "gh", "pr", "view", "--json", "baseRefName", "--jq", ".baseRefName" })[1]
+  if vim.v.shell_error == 0 and prBase and prBase ~= "" then
+    return prBase
+  end
+
+  local branches = vim.fn.systemlist({ "git", "for-each-ref", "--format=%(refname:short)", "refs/heads" })
+  local best, bestDistance
+  for _, branch in ipairs(branches) do
+    if branch ~= current then
+      -- commits on HEAD since forking from branch; 0 means branch contains HEAD
+      local distance = tonumber(vim.fn.systemlist({ "git", "rev-list", "--count", branch .. "..HEAD" })[1])
+      if distance and distance > 0 and (not bestDistance or distance < bestDistance) then
+        best, bestDistance = branch, distance
+      end
+    end
+  end
+  return best
+end
+
 return {
   "dlyongemallo/diffview-plus.nvim",
   version = "*",
@@ -109,6 +138,20 @@ return {
     },
     {
       "<leader>gD",
+      function()
+        local base = baseBranch()
+        if not base then
+          vim.notify("Base branch not found", vim.log.levels.WARN)
+          return
+        end
+        -- Diff against the fork point, so commits landed on base later don't show up
+        local mergeBase = vim.fn.systemlist({ "git", "merge-base", base, "HEAD" })[1]
+        vim.cmd("DiffviewOpen " .. mergeBase)
+      end,
+      desc = "Diff against base branch",
+    },
+    {
+      "<leader>gm",
       function()
         -- Try main first, fall back to master
         local result = vim.fn.systemlist { "git", "rev-parse", "--verify", "main" }
