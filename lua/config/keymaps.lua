@@ -120,6 +120,11 @@ end, {
 -- A lot of stuff for cut/paste without register
 vim.keymap.set("x", "<leader>p", "pgvy", { desc = "Paste w/o clipboard" })
 
+-- selecting previously pasted text, aka easier "`[v`]"
+vim.keymap.set("n", "gp", function()
+  return "`[" .. vim.fn.getregtype():sub(1, 1) .. "`]"
+end, { expr = true, desc = "select last pasted text" })
+
 function ReplaceWithRegister(type)
   if type == "char" then
     vim.cmd('normal! `[v`]"_dP')
