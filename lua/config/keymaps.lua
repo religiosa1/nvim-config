@@ -8,9 +8,6 @@ vim.keymap.set({ "n", "o", "x", "i" }, "<C-space>", "<nop>", { noremap = true })
 -- insert mode: the terminal sends <C-space> as <C-@>, which triggers the
 -- builtin i_CTRL-@ ("insert last inserted text + stop insert")
 vim.keymap.set("i", "<C-@>", "<nop>", { noremap = true })
-
--- $ in visual mode is stupid, as it selects trailing CR, as well. remapping to g_
-vim.keymap.set("x", "$", "g_")
 -- mapping Ё to ~ -- switch register under the cursor
 vim.keymap.set("n", "Ё", "~")
 
@@ -21,6 +18,8 @@ vim.keymap.set({ "n", "o", "x" }, "gH", "0")
 vim.keymap.set({ "n", "o", "x" }, "пР", "0")
 vim.keymap.set({ "n", "o", "x" }, "gl", "g_")
 vim.keymap.set({ "n", "o", "x" }, "пд", "g_")
+vim.keymap.set({ "n", "o", "x" }, "gL", "$")
+vim.keymap.set({ "n", "o", "x" }, "пД", "$")
 
 -- move record macro to <C-q> from just q, as I apparently constantly hit q by accident
 vim.keymap.set("n", "<C-q>", "q", { noremap = true, desc = "Record macro" })
@@ -117,35 +116,23 @@ vim.keymap.set({ "n", "x" }, "<leader>l", function()
 end, {
   desc = "Copy filename:linenumber",
 })
--- A lot of stuff for cut/paste without register
-vim.keymap.set("x", "<leader>p", "pgvy", { desc = "Paste w/o clipboard" })
 
 -- selecting previously pasted text, aka easier "`[v`]"
 vim.keymap.set("n", "gp", function()
   return "`[" .. vim.fn.getregtype():sub(1, 1) .. "`]"
 end, { expr = true, desc = "select last pasted text" })
 
-function ReplaceWithRegister(type)
-  if type == "char" then
-    vim.cmd('normal! `[v`]"_dP')
-  elseif type == "line" then
-    vim.cmd('normal! `[V`]"_dP')
-  end
-end
-
-vim.keymap.set("n", "gR", function()
-  vim.o.operatorfunc = "v:lua.ReplaceWithRegister"
-  return "g@"
-end, { expr = true, desc = "Replace with register" })
-
-vim.keymap.set("n", "gRR", '"_ddP', { desc = "Replace line" })
-vim.keymap.set("x", "gR", '"_dP', { desc = "Replace with register" })
+-- delete/paste without a register
+-- Paste without clipboard isn't really needed since nvim v0.8, where P in x
+-- mode was introduced. I'm commenting it out to remember the "right way"
+-- vim.keymap.set("x", "<leader>p", "P", { desc = "Paste w/o clipboard" })
 
 vim.keymap.set("x", "x", '"_d', { desc = "Delete to blackhole" })
-vim.keymap.set({ "n", "v", "o" }, "<LocalLeader>d", '"_d', { desc = "Delete to blackhole" })
 
--- More sane exit terminal mode -- doesn't work on MacOS
-vim.keymap.set("t", "<C-Esc>", "<C-\\><C-n>", { remap = true, desc = "Exit terminal mode" })
+-- More sane exit terminal mode -- resembles Snacks terminal on <C-/ but
+-- a single <Esc> now reaches programs after a timeoutlen outside of Snacks
+vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+
 -- scroll and center (defer zz until after animate scroll animation)
 local function scroll_center(key)
   return function()
