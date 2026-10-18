@@ -196,6 +196,18 @@ require("which-key").add {
   },
 }
 
+vim.keymap.set("x", "<Leader>jw", ":<C-u>" .. table.concat({
+  -- whitespace marker:
+  [['<,'>s/·/ /ge]],
+  -- leading tabs in ye olde vim (»···):
+  [['<,'>s/^ *\zs\%(» *\)\+/\=repeat("\t", count(submatch(0), '»'))/e]],
+  -- leading tabs in neovim (--->):
+  [['<,'>s/^\%( *-*>\)\+/\=repeat("\t", count(submatch(0), '>'))/e]],
+}, " | ") .. "<CR>", {
+  desc = "replace ghost whitespaces copied in tmux",
+  silent = true,
+})
+
 --------------------------------------------------------------------------------
 -- Extra <leader>u? stuff
 
