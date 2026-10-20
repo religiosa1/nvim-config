@@ -21,6 +21,8 @@ vim.keymap.set({ "n", "o", "x" }, "пд", "g_")
 vim.keymap.set({ "n", "o", "x" }, "gL", "$")
 vim.keymap.set({ "n", "o", "x" }, "пД", "$")
 
+vim.keymap.set("n", "gj", "A,<Esc>J", { desc = "Join lines with comma" })
+
 -- move record macro to <C-q> from just q, as I apparently constantly hit q by accident
 vim.keymap.set("n", "<C-q>", "q", { noremap = true, desc = "Record macro" })
 vim.keymap.set("n", "q", "<nop>", { noremap = true })
