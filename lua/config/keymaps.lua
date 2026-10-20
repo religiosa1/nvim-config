@@ -12,14 +12,15 @@ vim.keymap.set("i", "<C-@>", "<nop>", { noremap = true })
 vim.keymap.set("n", "Ё", "~")
 
 -- helix-like combinations for start-end of the line on the home row
-vim.keymap.set({ "n", "o", "x" }, "gh", "^")
-vim.keymap.set({ "n", "o", "x" }, "пр", "^")
-vim.keymap.set({ "n", "o", "x" }, "gH", "0")
-vim.keymap.set({ "n", "o", "x" }, "пР", "0")
-vim.keymap.set({ "n", "o", "x" }, "gl", "g_")
-vim.keymap.set({ "n", "o", "x" }, "пд", "g_")
-vim.keymap.set({ "n", "o", "x" }, "gL", "$")
-vim.keymap.set({ "n", "o", "x" }, "пД", "$")
+local hidden = { desc = "which_key_ignore" }
+vim.keymap.set({ "n", "o", "x" }, "gh", "^", hidden)
+vim.keymap.set({ "n", "o", "x" }, "пр", "^", hidden)
+vim.keymap.set({ "n", "o", "x" }, "gH", "0", hidden)
+vim.keymap.set({ "n", "o", "x" }, "пР", "0", hidden)
+vim.keymap.set({ "n", "o", "x" }, "gl", "g_", hidden)
+vim.keymap.set({ "n", "o", "x" }, "пд", "g_", hidden)
+vim.keymap.set({ "n", "o", "x" }, "gL", "$", hidden)
+vim.keymap.set({ "n", "o", "x" }, "пД", "$", hidden)
 
 vim.keymap.set("n", "gj", "A,<Esc>J", { desc = "Join lines with comma" })
 
