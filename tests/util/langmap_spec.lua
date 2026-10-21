@@ -117,5 +117,91 @@ describe("langmap", function()
       end)
       assert.are.equal(1, hits)
     end)
+
+    it("drops desc on leader duplicate", function()
+      langmap.set_keymap("n", "<leader>O", "<cmd>Oil<cr>", { buffer = buf, desc = "Oil" })
+      local latin = vim.api.nvim_buf_call(buf, function()
+        return vim.fn.maparg("<leader>O", "n", false, true)
+      end)
+      local langmapped = vim.api.nvim_buf_call(buf, function()
+        return vim.fn.maparg("<leader>Щ", "n", false, true)
+      end)
+      assert.are.equal("Oil", latin.desc)
+      assert.are.equal("<cmd>Oil<cr>", langmapped.rhs)
+      assert.is_nil(langmapped.desc)
+    end)
+  end)
+
+  describe("extend_lazy_keys", function()
+    it("puts duplicates right after originals", function()
+      local fn = function() end
+      local keys = langmap.extend_lazy_keys {
+        { "gh", fn, mode = { "n", "x" }, desc = "Line start" },
+        "<Esc>",
+        "q",
+      }
+      assert.are.same({
+        { "gh", fn, mode = { "n", "x" }, desc = "Line start" },
+        { "пр", fn, mode = { "n", "x" }, desc = "Line start" },
+        "<Esc>",
+        "q",
+        "й",
+      }, keys)
+    end)
+
+    it("drops desc on leader duplicates", function()
+      local keys = langmap.extend_lazy_keys { { "<leader>O", "<cmd>Oil<cr>", desc = "Oil" } }
+      assert.are.same({
+        { "<leader>O", "<cmd>Oil<cr>", desc = "Oil" },
+        { "<leader>Щ", "<cmd>Oil<cr>" },
+      }, keys)
+    end)
+
+    it("duplicates disabled keys", function()
+      assert.are.same({ { "s", false }, { "ы", false } }, langmap.extend_lazy_keys { { "s", false } })
+    end)
+
+    it("prefers explicit langmapped entries", function()
+      local keys = langmap.extend_lazy_keys {
+        { "s", false },
+        { "s", "latin" },
+        { "ы", "cyrillic" },
+      }
+      assert.are.same({ { "s", false }, { "s", "latin" }, { "ы", "cyrillic" } }, keys)
+    end)
+
+    it("doesn't mutate the original specs", function()
+      local spec = { "<leader>O", "<cmd>Oil<cr>", desc = "Oil" }
+      langmap.extend_lazy_keys { spec }
+      assert.are.same({ "<leader>O", "<cmd>Oil<cr>", desc = "Oil" }, spec)
+    end)
+  end)
+
+  describe("extend_keymaps", function()
+    it("adds langmapped duplicates", function()
+      local keymaps = langmap.extend_keymaps {
+        H = { "actions.parent", mode = "n", desc = "Parent" },
+        ["<C-s>"] = false,
+        ["<Esc><Esc>"] = "actions.close",
+      }
+      assert.are.same({
+        H = { "actions.parent", mode = "n", desc = "Parent" },
+        ["Р"] = { "actions.parent", mode = "n", desc = "Parent" },
+        ["<C-s>"] = false,
+        ["<C-ы>"] = false,
+        ["<Esc><Esc>"] = "actions.close",
+      }, keymaps)
+    end)
+
+    it("drops desc on leader duplicates", function()
+      local keymaps = langmap.extend_keymaps { ["<leader>yy"] = { "actions.yank", desc = "Yank" } }
+      assert.are.same({ "actions.yank" }, keymaps["<leader>нн"])
+      assert.are.equal("Yank", keymaps["<leader>yy"].desc)
+    end)
+
+    it("prefers explicit langmapped entries", function()
+      local keymaps = langmap.extend_keymaps { L = "actions.select", ["Д"] = "actions.other" }
+      assert.are.equal("actions.other", keymaps["Д"])
+    end)
   end)
 end)

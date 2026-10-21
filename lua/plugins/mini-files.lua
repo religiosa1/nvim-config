@@ -1,3 +1,5 @@
+local langmap = require("util.langmap")
+
 local openMiniFiles = function()
   require("mini.files").open(vim.api.nvim_buf_get_name(0), true)
 end
@@ -20,7 +22,7 @@ return {
     -- })
     return opts
   end,
-  keys = {
+  keys = langmap.extend_lazy_keys {
     -- drop LazyVim extra's binds; <leader>fm is a new markdown buffer, see config/keymaps.lua
     { "<leader>fm", false },
     { "<leader>fM", false },
@@ -28,10 +30,6 @@ return {
       "<leader>o",
       openMiniFiles,
       desc = "Open mini.files (Directory of Current File)",
-    },
-    {
-      "<leader>щ",
-      openMiniFiles,
     },
   },
   init = function()
@@ -157,16 +155,17 @@ return {
           end
         end, { buffer = buf_id, desc = "Open file in VSplit" })
 
-        -- cyrillic mappings for main nav
-        vim.keymap.set("n", "р", function()
+        -- langmapped duplicates for main nav, latin ones are set by mini.files itself
+        vim.keymap.set("n", langmap.get("h"), function()
           MiniFiles.go_out()
         end, { buffer = buf_id })
-        vim.keymap.set("n", "д", function()
+        vim.keymap.set("n", langmap.get("l"), function()
           MiniFiles.go_in { close_on_file = false }
         end, { buffer = buf_id })
-        vim.keymap.set("n", "Д", function()
+        vim.keymap.set("n", langmap.get("L"), function()
           MiniFiles.go_in { close_on_file = true }
         end, { buffer = buf_id })
+        vim.keymap.set("n", langmap.get("q"), MiniFiles.close, { buffer = buf_id })
       end,
     })
   end,

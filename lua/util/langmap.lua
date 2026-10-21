@@ -96,6 +96,21 @@ local function remap_key(key, lookup)
   return "<" .. mods .. mapped .. ">"
 end
 
+--- Shallow copy of keymap spec/opts for the langmapped duplicate.
+---
+--- Leader duplicates lose their desc, so they don't clutter which-key popup.
+---@generic T: table
+---@param spec T
+---@param lhs string original (non-langmapped) lhs
+---@return T
+local function duplicate_spec(spec, lhs)
+  local duplicate = vim.tbl_extend("force", {}, spec)
+  if lhs:lower():find("^<leader>") then
+    duplicate.desc = nil
+  end
+  return duplicate
+end
+
 --- Get mapped keybinding for a lhs mapping expression.
 ---
 --- @usage vim.keymap.set("n", langmap.get("<Leader><C-z>"), "<cmd>FooCmd<cr>")
@@ -128,8 +143,62 @@ function M.set_keymap(modes, lhs, rhs, opts)
 
   local remapped_lhs = M.get(lhs)
   if remapped_lhs ~= lhs then
-    vim.keymap.set(modes, remapped_lhs, rhs, opts)
+    vim.keymap.set(modes, remapped_lhs, rhs, opts and duplicate_spec(opts, lhs))
   end
+end
+
+--- Add langmapped duplicates to a lazy.nvim `keys` list.
+---
+--- Each duplicate goes right after its original. Entries already present in
+--- the list with the langmapped lhs take precedence over generated ones.
+---
+--- @usage keys = langmap.extend_lazy_keys { { "<leader>O", "<cmd>Oil<cr>", desc = "Oil" } }
+---
+---@param keys (string|LazyKeysSpec)[]
+---@return (string|LazyKeysSpec)[]
+function M.extend_lazy_keys(keys)
+  local existing = {}
+  for _, key in ipairs(keys) do
+    existing[type(key) == "string" and key or key[1]] = true
+  end
+
+  local result = {}
+  for _, key in ipairs(keys) do
+    table.insert(result, key)
+    local lhs = type(key) == "string" and key or key[1]
+    local remapped_lhs = M.get(lhs)
+    if remapped_lhs ~= lhs and not existing[remapped_lhs] then
+      if type(key) == "string" then
+        table.insert(result, remapped_lhs)
+      else
+        local duplicate = duplicate_spec(key, lhs)
+        duplicate[1] = remapped_lhs
+        table.insert(result, duplicate)
+      end
+    end
+  end
+  return result
+end
+
+--- Add langmapped duplicates to a `{ [lhs] = spec }` keymaps table (oil.nvim and such).
+---
+--- Entries already present in the table with the langmapped lhs take
+--- precedence over generated ones.
+---
+--- @usage keymaps = langmap.extend_keymaps { H = { "actions.parent", mode = "n" } }
+---
+---@generic T
+---@param keymaps table<string, T>
+---@return table<string, T>
+function M.extend_keymaps(keymaps)
+  local result = vim.tbl_extend("force", {}, keymaps)
+  for lhs, spec in pairs(keymaps) do
+    local remapped_lhs = M.get(lhs)
+    if remapped_lhs ~= lhs and keymaps[remapped_lhs] == nil then
+      result[remapped_lhs] = type(spec) == "table" and duplicate_spec(spec, lhs) or spec
+    end
+  end
+  return result
 end
 
 return M

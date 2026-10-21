@@ -1,3 +1,5 @@
+local langmap = require("util.langmap")
+
 local cyrillicLabels = "фывапролдйцукенгшщзячсмить"
 local allCyrillicLabels = cyrillicLabels .. vim.fn.toupper(cyrillicLabels)
 
@@ -38,7 +40,7 @@ return {
     },
     -- cyrillic flash
     {
-      "ы",
+      langmap.get("s"),
       mode = { "n" },
       function()
         require("flash").jump { labels = allCyrillicLabels }

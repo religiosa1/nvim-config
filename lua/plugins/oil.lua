@@ -1,6 +1,7 @@
 -- I mostly use oil as a netrw replacement for now. The main file explorer is mini.files now.
 
 local FileUtils = require("util.files")
+local langmap = require("util.langmap")
 
 local function float_only_close()
   local is_float = vim.api.nvim_win_get_config(0).relative ~= ""
@@ -52,7 +53,7 @@ return {
         -- see :help 'winborder' and :help nvim_open_win
         border = "double",
       },
-      keymaps = {
+      keymaps = langmap.extend_keymaps {
         q = { float_only_close, mode = "n", desc = "Close float window" },
         ["<Esc><Esc>"] = { float_only_close, mode = "n", desc = "Close float window" },
         ["<C-s>"] = false,
@@ -61,10 +62,6 @@ return {
         -- nav
         ["H"] = { "actions.parent", mode = "n", desc = "Go to parent directory" },
         ["L"] = { "actions.select", mode = "n", desc = "Open file / enter directory" },
-        -- cyrillic aliases for nav
-        ["Р"] = { "actions.parent", mode = "n", desc = "Go to parent directory" },
-        ["Д"] = { "actions.select", mode = "n", desc = "Open file / enter directory" },
-        -- end nav
         ["g<C-v>"] = { "actions.select", opts = { vertical = true }, desc = "Open file in VSplit" },
         ["<leader>yy"] = {
           function()
@@ -137,7 +134,7 @@ return {
         border = "rounded",
       },
     },
-    keys = {
+    keys = langmap.extend_lazy_keys {
       {
         "<leader>O",
         "<cmd>lua require('oil').toggle_float()<CR>",
@@ -159,13 +156,6 @@ return {
         --   end
         -- end,
         desc = "Open Oil in the current folder",
-        mode = { "n" },
-        silent = true,
-      },
-      -- cyrillic version of that as well
-      {
-        "<leader>Щ",
-        "<cmd>lua require('oil').toggle_float()<CR>",
         mode = { "n" },
         silent = true,
       },

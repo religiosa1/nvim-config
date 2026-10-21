@@ -1,3 +1,5 @@
+local langmap = require("util.langmap")
+
 return {
   "neovim/nvim-lspconfig",
   opts = {
@@ -6,11 +8,10 @@ return {
     servers = {
       ["*"] = {
         keys = {
-          -- Cyrillic (ЙЦУКЕН) duplicate of <leader>ca Code Action: с=c, ф=a
+          -- langmapped duplicate of LazyVim's <leader>ca Code Action
           {
-            "<leader>сф",
+            langmap.get("<leader>ca"),
             vim.lsp.buf.code_action,
-            desc = "Code Action",
             mode = { "n", "x" },
             has = "codeAction",
           },
