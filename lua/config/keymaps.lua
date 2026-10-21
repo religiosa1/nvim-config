@@ -2,42 +2,36 @@
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
 
+local langmap = require("util.langmap")
+
 -- mapping <C-space> to noop, so we can switch keyboard layouts with it not affecting anything else
 -- incremental treesitter is on S, see ../plugins/override_flash.lua:11
 vim.keymap.set({ "n", "o", "x", "i" }, "<C-space>", "<nop>", { noremap = true })
 -- insert mode: the terminal sends <C-space> as <C-@>, which triggers the
 -- builtin i_CTRL-@ ("insert last inserted text + stop insert")
 vim.keymap.set("i", "<C-@>", "<nop>", { noremap = true })
--- mapping Ё to ~ -- switch register under the cursor
-vim.keymap.set("n", "Ё", "~")
 
 -- helix-like combinations for start-end of the line on the home row
 local hidden = { desc = "which_key_ignore" }
-vim.keymap.set({ "n", "o", "x" }, "gh", "^", hidden)
-vim.keymap.set({ "n", "o", "x" }, "пр", "^", hidden)
-vim.keymap.set({ "n", "o", "x" }, "gH", "0", hidden)
-vim.keymap.set({ "n", "o", "x" }, "пР", "0", hidden)
-vim.keymap.set({ "n", "o", "x" }, "gl", "g_", hidden)
-vim.keymap.set({ "n", "o", "x" }, "пд", "g_", hidden)
-vim.keymap.set({ "n", "o", "x" }, "gL", "$", hidden)
-vim.keymap.set({ "n", "o", "x" }, "пД", "$", hidden)
+langmap.set_keymap({ "n", "o", "x" }, "gh", "^", hidden)
+langmap.set_keymap({ "n", "o", "x" }, "gH", "0", hidden)
+langmap.set_keymap({ "n", "o", "x" }, "gl", "g_", hidden)
+langmap.set_keymap({ "n", "o", "x" }, "gL", "$", hidden)
 
 vim.keymap.set("n", "gj", "A,<Esc>J", { desc = "Join lines with comma" })
 
 -- move record macro to <C-q> from just q, as I apparently constantly hit q by accident
 vim.keymap.set("n", "<C-q>", "q", { noremap = true, desc = "Record macro" })
-vim.keymap.set("n", "q", "<nop>", { noremap = true })
-vim.keymap.set("n", "й", "<nop>", { noremap = true })
+langmap.set_keymap("n", "q", "<nop>", { noremap = true })
 -- keep cmdline-window history reachable
 vim.keymap.set("n", "q:", "q:", { noremap = true, desc = "Command history window" })
 vim.keymap.set("n", "q/", "q/", { noremap = true, desc = "Search history window" })
 vim.keymap.set("n", "q?", "q?", { noremap = true, desc = "Search history window (backward)" })
 
-vim.keymap.set("i", "<C-в>", "<Delete>")
-vim.keymap.set("i", "<C-d>", "<Delete>", { desc = "Delete forward" })
-vim.keymap.set("i", "<C-ы>", "<C-o>dw")
-vim.keymap.set("i", "<C-s>", "<C-o>dw", { desc = "Delete forward word" })
-vim.keymap.set("i", "<C-ц>", "<C-w>")
+langmap.set_keymap("i", "<C-d>", "<Delete>", { desc = "Delete forward" })
+langmap.set_keymap("i", "<C-s>", "<C-o>dw", { desc = "Delete forward word" })
+vim.keymap.set("i", langmap.get("<C-w>"), "<C-w>")
+
 -- Vim normally uses C-d in insert mode to decrease indent, but this conflicts with our delete binding
 -- So let's switch that to <A-t>. <C-T> is already taken by ghostty and such
 vim.keymap.set("i", "<A-t>", "<C-o><<", { silent = true })
@@ -151,26 +145,19 @@ vim.keymap.set("n", "<C-u>", scroll_center("<C-u>"))
 vim.keymap.set("n", "<C-d>", scroll_center("<C-d>"))
 
 -- compatibility with vim-surround for mini.surrounding plugin -- for cyrillic as well
-vim.keymap.set("n", "ys", "gsa", { remap = true, desc = "Add surrounding" })
-vim.keymap.set("n", "ны", "gsa", { remap = true })
-vim.keymap.set("n", "ds", "gsd", { remap = true, desc = "Delete surrounding" })
-vim.keymap.set("n", "вы", "gsd", { remap = true })
-vim.keymap.set("n", "cs", "gsr", { remap = true, desc = "Replace surrounding" })
-vim.keymap.set("n", "сы", "gsr", { remap = true })
-vim.keymap.set("x", "S", "gsa", { remap = true, desc = "Add surrounding" })
-vim.keymap.set("x", "Ы", "gsa", { remap = true })
+langmap.set_keymap("n", "ys", "gsa", { remap = true, desc = "Add surrounding" })
+langmap.set_keymap("x", "S", "gsa", { remap = true, desc = "Add surrounding" })
+langmap.set_keymap("n", "ds", "gsd", { remap = true, desc = "Delete surrounding" })
+langmap.set_keymap("n", "cs", "gsr", { remap = true, desc = "Replace surrounding" })
 
 -- Bufferline move buffers around and a shorter "pick buffer"
-vim.keymap.set("n", "<A-H>", "<cmd>BufferLineMovePrev<cr>")
-vim.keymap.set("n", "<A-L>", "<cmd>BufferLineMoveNext<cr>")
--- Cyrillic versions of that
-vim.keymap.set("n", "<A-Р>", "<cmd>BufferLineMovePrev<cr>")
-vim.keymap.set("n", "<A-Д>", "<cmd>BufferLineMoveNext<cr>")
--- And to move around
-vim.keymap.set("n", "Р", "<cmd>BufferLineCyclePrev<cr>")
-vim.keymap.set("n", "Д", "<cmd>BufferLineCycleNext<cr>")
+langmap.set_keymap("n", "<A-H>", "<cmd>BufferLineMovePrev<cr>")
+langmap.set_keymap("n", "<A-L>", "<cmd>BufferLineMoveNext<cr>")
+-- Duplicating move around for cyrillic specifically
+vim.keymap.set("n", langmap.get("H"), "<cmd>BufferLineCyclePrev<cr>")
+vim.keymap.set("n", langmap.get("L"), "<cmd>BufferLineCycleNext<cr>")
 -- bufferline shorter keymaps for buffer selection:
-vim.keymap.set("n", "gb", "<cmd>BufferLinePick<cr>", { desc = "Pick Buffer" })
+langmap.set_keymap("n", "gb", "<cmd>BufferLinePick<cr>", { desc = "Pick Buffer" })
 -- and "hydra" buffer pick close
 local function hydra_pick_close()
   repeat
@@ -179,9 +166,10 @@ local function hydra_pick_close()
     local after = #vim.fn.getbufinfo { buflisted = 1 }
   until after <= 1 or before == after
 end
-vim.keymap.set("n", "gB", hydra_pick_close, { desc = "Pick Close Buffer" })
+langmap.set_keymap("n", "gB", hydra_pick_close, { desc = "Pick Close Buffer" })
 vim.keymap.set("n", "<Leader>bJ", hydra_pick_close, { desc = "Pick Close Buffer" })
--- Fake group to be filled in with our inline plugins
+
+-- Fake group to be filled in with our inline "Editing actions" plugins
 require("which-key").add {
   {
     "<leader>j",

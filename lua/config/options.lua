@@ -19,7 +19,7 @@ if vim.fn.argc() == 0 then
   vim.opt.titlestring = vim.fn.fnamemodify(vim.fn.getcwd(), ":t") .. " - Nvim"
 end
 -- Langmap for russian keybindings
-vim.opt.langmap = "ЙQ,йq,ЦW,цw,УE,уe,КR,кr,ЕT,еt,НY,нy,ГU,гu,ШI,шi,ЩO,щo,ЗP,зp,Х{,х[,Ъ},ъ],"
+vim.opt.langmap = "Ё~,ё`,ЙQ,йq,ЦW,цw,УE,уe,КR,кr,ЕT,еt,НY,нy,ГU,гu,ШI,шi,ЩO,щo,ЗP,зp,Х{,х[,Ъ},ъ],"
   .. "ФA,фa,ЫS,ыs,ВD,вd,АF,аf,ПG,пg,РH,рh,ОJ,оj,ЛK,лk,ДL,дl,Ж:,ж\\;,Э\",э'"
   .. "ЯZ,яz,ЧX,чx,СC,сc,МV,мv,ИB,иb,ТN,тn,ЬM,ьm,Б<,б\\,,Ю>,ю."
 
