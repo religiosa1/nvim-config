@@ -72,6 +72,11 @@ return {
 
         vim.keymap.set("n", "<esc><esc>", MiniFiles.close, { buffer = buf_id, desc = "Close" })
 
+        -- consistent with oil's "_" (actions.open_cwd)
+        vim.keymap.set("n", "_", function()
+          MiniFiles.open(vim.fn.getcwd(), false)
+        end, { buffer = buf_id, desc = "Open cwd" })
+
         vim.keymap.set("n", "<leader>yy", function()
           FileUtils.yank_relative_path(get_selection_path())
         end, { buffer = buf_id, desc = "Yank file path relative to ROOT" })
