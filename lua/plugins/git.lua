@@ -85,6 +85,10 @@ return {
   },
   opts = {
     show_help_hints = false,
+    view = {
+      -- added/deleted files: single window instead of a half-empty diff
+      one_sided_layout = "raw",
+    },
     -- adding ]h to the existing ]c for consistency
     keymaps = {
       view = {
@@ -105,6 +109,18 @@ return {
         { "n", "zR", diffViewCmd("normal! zR"), { desc = "Open all level folds in diff" } },
         { "n", "zm", diffViewCmd("normal! zm"), { desc = "Close all folds in diff" } },
         { "n", "zM", diffViewCmd("normal! zM"), { desc = "Close all level folds in diff" } },
+        {
+          "n",
+          "cc",
+          function()
+            vim.ui.input({ prompt = "Commit message: " }, function(message)
+              if message and message ~= "" then
+                vim.notify(vim.fn.system({ "git", "commit", "-m", message }))
+              end
+            end)
+          end,
+          { desc = "Commit staged changes" },
+        },
       },
       file_history_panel = {
         { "n", "<esc><esc>", "<cmd>DiffviewClose<cr>", { desc = "Close diffview" } },
