@@ -18,7 +18,7 @@ langmap.set_keymap({ "n", "o", "x" }, "gH", "0", hidden)
 langmap.set_keymap({ "n", "o", "x" }, "gl", "g_", hidden)
 langmap.set_keymap({ "n", "o", "x" }, "gL", "$", hidden)
 
-vim.keymap.set("n", "gj", "A,<Esc>J", { desc = "Join lines with comma" })
+langmap.set_keymap("n", "<A-J>", "<cmd>keeppatterns s/\\s*$/,/<cr>J", { desc = "Join lines with comma" })
 
 -- move record macro to <C-q> from just q, as I apparently constantly hit q by accident
 vim.keymap.set("n", "<C-q>", "q", { noremap = true, desc = "Record macro" })
