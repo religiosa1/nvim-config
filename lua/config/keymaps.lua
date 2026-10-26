@@ -18,7 +18,22 @@ langmap.set_keymap({ "n", "o", "x" }, "gH", "0", hidden)
 langmap.set_keymap({ "n", "o", "x" }, "gl", "g_", hidden)
 langmap.set_keymap({ "n", "o", "x" }, "gL", "$", hidden)
 
-langmap.set_keymap("n", "<A-J>", "<cmd>keeppatterns s/\\s*$/,/<cr>J", { desc = "Join lines with comma" })
+langmap.set_keymap("n", "<A-J>", "<cmd>keeppatterns s/\\s*$/,/<cr>J", {
+  desc = "Join lines with comma",
+})
+langmap.set_keymap({ "n", "i" }, "<C-;>", function()
+  local col = vim.api.nvim_win_get_cursor(0)[2]
+  local is_insert = vim.api.nvim_get_mode().mode:match("^[iR]")
+  if is_insert then
+    col = math.max(col - 1, 0) -- <Esc> moves cursor one left
+  end
+  local at_word_start = col == 0 or vim.api.nvim_get_current_line():sub(col, col):match("%s")
+  local keys = (is_insert and "<Esc>" or "")
+    .. (at_word_start and "" or "B")
+    .. "i<CR><Esc>"
+    .. (is_insert and "A" or "l")
+  vim.api.nvim_feedkeys(vim.keycode(keys), "ni", false)
+end, { desc = "Move WORD to next line" })
 
 -- move record macro to <C-q> from just q, as I apparently constantly hit q by accident
 vim.keymap.set("n", "<C-q>", "q", { noremap = true, desc = "Record macro" })
