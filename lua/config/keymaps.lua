@@ -139,7 +139,7 @@ end, { expr = true, desc = "select last pasted text" })
 -- mode was introduced. I'm commenting it out to remember the "right way"
 -- vim.keymap.set("x", "<leader>p", "P", { desc = "Paste w/o clipboard" })
 
-vim.keymap.set("x", "x", '"_d', { desc = "Delete to blackhole" })
+langmap.set_keymap("x", "x", '"_d', { desc = "Delete to blackhole" })
 
 -- More sane exit terminal mode -- resembles Snacks terminal on <C-/ but
 -- a single <Esc> now reaches programs after a timeoutlen outside of Snacks
