@@ -45,10 +45,39 @@ return {
           { "<leader>y", group = "Yank file path", buffer = buf_id },
         }
 
-        -- enter is "go_in_plus" (same as "L"), consistent with oil; sync via "=" or :w
-        vim.keymap.set("n", "<cr>", function()
-          MiniFiles.go_in { close_on_file = true }
-        end, { buffer = buf_id, desc = "Go in plus" })
+        -- "go_in_plus", but like oil's select: on a not-yet-created entry syncs first, then goes into it
+        local function go_in_plus()
+          if MiniFiles.get_fs_entry() ~= nil then
+            MiniFiles.go_in { close_on_file = true }
+            return
+          end
+
+          local name = vim.trim(vim.api.nvim_get_current_line())
+          if name == "" then
+            return
+          end
+          local state = MiniFiles.get_explorer_state()
+          local dir = state and state.branch[state.depth_focus]
+          if not dir or not MiniFiles.synchronize() then
+            return
+          end
+
+          -- for nested "a/b.lua" go into the top-level created entry
+          local target = vim.fs.joinpath(dir, (name:gsub("/.*$", "")))
+          local cur_buf = vim.api.nvim_get_current_buf()
+          for lnum = 1, vim.api.nvim_buf_line_count(cur_buf) do
+            local entry = MiniFiles.get_fs_entry(cur_buf, lnum)
+            if entry and entry.path == target then
+              vim.api.nvim_win_set_cursor(0, { lnum, 0 })
+              MiniFiles.go_in { close_on_file = true }
+              return
+            end
+          end
+        end
+
+        -- enter is the same as "L", consistent with oil; sync via "=" or :w
+        vim.keymap.set("n", "<cr>", go_in_plus, { buffer = buf_id, desc = "Go in plus" })
+        vim.keymap.set("n", "L", go_in_plus, { buffer = buf_id, desc = "Go in plus" })
 
         -- syncing on save
         vim.bo[buf_id].buftype = "acwrite"
@@ -167,9 +196,7 @@ return {
         vim.keymap.set("n", langmap.get("l"), function()
           MiniFiles.go_in { close_on_file = false }
         end, { buffer = buf_id })
-        vim.keymap.set("n", langmap.get("L"), function()
-          MiniFiles.go_in { close_on_file = true }
-        end, { buffer = buf_id })
+        vim.keymap.set("n", langmap.get("L"), go_in_plus, { buffer = buf_id })
         vim.keymap.set("n", langmap.get("q"), MiniFiles.close, { buffer = buf_id })
       end,
     })
