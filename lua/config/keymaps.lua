@@ -299,3 +299,13 @@ end, { desc = "Copy Github Line Link" })
 -- Scratch buffers with a filetype
 vim.keymap.set("n", "<leader>fm", "<cmd>enew | setlocal ft=markdown<cr>", { desc = "New Markdown Buffer" })
 vim.keymap.set("n", "<leader>fj", "<cmd>enew | setlocal ft=json<cr>", { desc = "New JSON Buffer" })
+
+vim.keymap.set("n", "<A-/>", function()
+  require("util.ast_search").prompt()
+end, { desc = "ast-grep search in buffer" })
+-- tmux csi-u sends alt+? with explicit shift
+for _, lhs in ipairs { "<A-?>", "<M-S-?>" } do
+  vim.keymap.set("n", lhs, function()
+    require("util.ast_search").prompt(true)
+  end, { desc = "ast-grep search backward in buffer" })
+end
