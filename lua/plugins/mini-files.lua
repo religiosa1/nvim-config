@@ -45,25 +45,20 @@ return {
           { "<leader>y", group = "Yank file path", buffer = buf_id },
         }
 
-        -- "go_in_plus", but like oil's select: on a not-yet-created entry syncs first, then goes into it
+        -- "go_in_plus", but like oil's select: syncs pending edits (creates, renames) first, then goes in.
+        -- "No"/"Cancel" in the sync dialog bails: on "No" buffers get reset, so the edited name isn't found.
         local function go_in_plus()
-          if MiniFiles.get_fs_entry() ~= nil then
-            MiniFiles.go_in { close_on_file = true }
-            return
-          end
-
-          local name = vim.trim(vim.api.nvim_get_current_line())
-          if name == "" then
-            return
-          end
+          -- line is "/<path_id>/<icon>/<name>" for existing entries, bare "<name>" for new ones;
+          -- for nested "a/b.lua" target the top-level entry
+          local line = vim.api.nvim_get_current_line()
+          local name = vim.trim((line:sub(line:match("^/.-/.-/()") or 1):gsub("/.*$", "")))
           local state = MiniFiles.get_explorer_state()
           local dir = state and state.branch[state.depth_focus]
-          if not dir or not MiniFiles.synchronize() then
+          if name == "" or not dir or not MiniFiles.synchronize() then
             return
           end
 
-          -- for nested "a/b.lua" go into the top-level created entry
-          local target = vim.fs.joinpath(dir, (name:gsub("/.*$", "")))
+          local target = vim.fs.joinpath(dir, name)
           local cur_buf = vim.api.nvim_get_current_buf()
           for lnum = 1, vim.api.nvim_buf_line_count(cur_buf) do
             local entry = MiniFiles.get_fs_entry(cur_buf, lnum)
