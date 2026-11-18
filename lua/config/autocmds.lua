@@ -163,3 +163,21 @@ do
     activate(win, vim.api.nvim_win_get_buf(win))
   end
 end
+
+-- Claude Code <C-g> prompt: keymaps to view the conversation, see ../util/claude.lua
+do
+  local claude = require("util.claude")
+  vim.api.nvim_create_autocmd("BufEnter", {
+    desc = "Claude transcript keymaps",
+    pattern = "claude-prompt*.md",
+    callback = function(args)
+      claude.attach(args.buf)
+    end,
+  })
+  -- autocmds load on VeryLazy, after the prompt file opened at startup already fired BufEnter
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if claude.is_prompt_buffer(buf) then
+      claude.attach(buf)
+    end
+  end
+end
