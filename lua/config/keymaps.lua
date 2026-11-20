@@ -58,6 +58,11 @@ vim.keymap.set("i", "<A-b>", "<C-o>b", { silent = true })
 -- Go To definition in a vertical split
 vim.keymap.set("n", "g<C-v>", "<C-w>v:lua Snacks.picker.lsp_definitions()<CR>", { desc = "Go to definition in Vsplit" })
 
+-- tmux-style zoom toggle
+vim.keymap.set("n", "<C-w>z", function()
+  Snacks.zen.zoom()
+end, { desc = "Zoom window" })
+
 require("which-key").add {
   {
     "<leader>y",
