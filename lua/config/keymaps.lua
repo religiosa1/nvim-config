@@ -46,6 +46,8 @@ vim.keymap.set("n", "q?", "q?", { noremap = true, desc = "Search history window 
 langmap.set_keymap("i", "<C-d>", "<Delete>", { desc = "Delete forward" })
 langmap.set_keymap("i", "<C-s>", "<C-o>dw", { desc = "Delete forward word" })
 vim.keymap.set("i", langmap.get("<C-w>"), "<C-w>")
+-- langmap doesn't apply to ctrl combos
+vim.keymap.set({ "n", "i", "c" }, langmap.get("<C-r>"), "<C-r>")
 
 -- Vim normally uses C-d in insert mode to decrease indent, but this conflicts with our delete binding
 -- So let's switch that to <A-t>. <C-T> is already taken by ghostty and such
