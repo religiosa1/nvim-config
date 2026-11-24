@@ -27,3 +27,9 @@ vim.cmd("cnoreabbrev й q")
 vim.cmd("cnoreabbrev ц w")
 vim.cmd("cnoreabbrev у e")
 vim.cmd("cnoreabbrev k r")
+
+vim.api.nvim_create_user_command("SudoWrite", function()
+  require("util.sudo").write()
+end, { desc = "Write current file with sudo" })
+-- classic `w!!` sudo save; expands only when it's the whole command line
+vim.cmd([[cnoreabbrev <expr> w!! getcmdtype() == ':' && getcmdline() == 'w!!' ? 'SudoWrite' : 'w!!']])
