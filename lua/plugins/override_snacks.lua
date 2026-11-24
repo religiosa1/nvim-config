@@ -17,6 +17,14 @@ local function yank_item_path(picker, item, yank)
   end)
 end
 
+local picker_leader_yank_keys = {
+  ["<leader>yy"] = { "yank_path_cwd", mode = "n", desc = "Yank path relative to cwd" },
+  ["<leader>yr"] = { "yank_path_buf", mode = "n", desc = "Yank path relative to buf" },
+  ["<leader>yY"] = { "yank_path_abs", mode = "n", desc = "Yank absolute path" },
+  ["<leader>yn"] = { "yank_name", mode = "n", desc = "Yank file name" },
+  ["<leader>yf"] = { "yank_files", mode = "n", desc = "Copy files to system clipboard" },
+}
+
 return {
   "folke/snacks.nvim",
   -- Drop the snacks_picker git-diff binds (<leader>gd hunks, <leader>gD origin)
@@ -91,6 +99,9 @@ return {
         yank_path_abs = function(picker, item)
           yank_item_path(picker, item, FileUtils.yank_absolute_path)
         end,
+        yank_name = function(picker, item)
+          yank_item_path(picker, item, FileUtils.yank_file_name)
+        end,
         yank_files = function(picker)
           local paths = vim
             .iter(picker:selected { fallback = true })
@@ -107,8 +118,10 @@ return {
         end,
       },
       win = {
+        -- shadow global <leader>y* maps, which would yank the picker's own (unnamed) buffer
+        list = { keys = picker_leader_yank_keys },
         input = {
-          keys = {
+          keys = vim.tbl_extend("error", picker_leader_yank_keys, {
             ["<c-y>y"] = { "yank_path_cwd", mode = { "n", "i" }, desc = "Yank path relative to cwd" },
             ["<c-y>r"] = { "yank_path_buf", mode = { "n", "i" }, desc = "Yank path relative to buf" },
             ["<c-y>Y"] = { "yank_path_abs", mode = { "n", "i" }, desc = "Yank absolute path" },
@@ -119,7 +132,7 @@ return {
               "toggle_hidden",
               mode = { "n", "i" },
             },
-          },
+          }),
         },
       },
     },

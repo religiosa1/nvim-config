@@ -65,6 +65,17 @@ vim.keymap.set("n", "<C-w>z", function()
   Snacks.zen.zoom()
 end, { desc = "Zoom window" })
 
+---Absolute path of the current buffer, or nil (with a warning) if it isn't a file.
+---@return string?
+local function current_file_path()
+  local path = vim.fn.expand("%:p")
+  if path == "" or vim.bo.buftype ~= "" then
+    vim.notify("Current buffer is not a file", vim.log.levels.WARN)
+    return nil
+  end
+  return path
+end
+
 require("which-key").add {
   {
     "<leader>y",
@@ -73,22 +84,34 @@ require("which-key").add {
   },
 }
 vim.keymap.set("n", "<leader>yy", function()
-  local path = vim.fn.expand("%:p")
+  local path = current_file_path()
+  if not path then
+    return
+  end
   require("util.files").yank_relative_path(path)
 end, { desc = "Yank relative path" })
 
 vim.keymap.set("n", "<leader>yY", function()
-  local path = vim.fn.expand("%:p")
+  local path = current_file_path()
+  if not path then
+    return
+  end
   require("util.files").yank_absolute_path(path)
 end, { desc = "Yank absolute path" })
 
 vim.keymap.set("n", "<leader>yn", function()
-  local path = vim.fn.expand("%:p")
+  local path = current_file_path()
+  if not path then
+    return
+  end
   require("util.files").yank_file_name(path)
 end, { desc = "Yank file name" })
 
 vim.keymap.set("n", "<leader>yf", function()
-  local path = vim.fn.expand("%:p")
+  local path = current_file_path()
+  if not path then
+    return
+  end
   require("util.files").copy_files_to_clipboard { path }
 end, { desc = "Copy file into system clipboard" })
 
