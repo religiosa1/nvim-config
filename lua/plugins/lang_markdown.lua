@@ -89,9 +89,9 @@ return {
             },
           }
         ),
-        -- skip nameless buffers (e.g. <leader>fm scratch): oxide panics on a URI
+        -- skip nameless buffers (e.g. :enew): oxide panics on a URI
         -- without a file stem ("file should have file stem").
-        -- To get LSP in a scratch buffer: `:w name.md` then `:e` to reattach.
+        -- <leader>fm opens a temp-file-backed scratch, which does get LSP.
         root_dir = function(bufnr, on_dir)
           if vim.api.nvim_buf_get_name(bufnr) ~= "" then
             on_dir(vim.fs.root(bufnr, { ".git", ".obsidian", ".moxide.toml" }))

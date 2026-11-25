@@ -326,9 +326,17 @@ vim.keymap.set({ "n", "x" }, "<leader>gy", function()
   }
 end, { desc = "Copy Github Line Link" })
 
--- Scratch buffers with a filetype
-vim.keymap.set("n", "<leader>fm", "<cmd>enew | setlocal ft=markdown<cr>", { desc = "New Markdown Buffer" })
-vim.keymap.set("n", "<leader>fj", "<cmd>enew | setlocal ft=json<cr>", { desc = "New JSON Buffer" })
+-- Scratch buffers with a filetype. The temp file name exists only so LSP
+-- attaches: a nameless buffer has an empty `file://` URI servers can't use,
+-- and :enew doesn't fire BufNewFile, so lspconfig may not even be loaded.
+local function new_scratch(ext)
+  return function()
+    vim.cmd.edit(vim.fn.tempname() .. "." .. ext)
+  end
+end
+vim.keymap.set("n", "<leader>fm", new_scratch("md"), { desc = "New Markdown Buffer" })
+vim.keymap.set("n", "<leader>fj", new_scratch("json"), { desc = "New JSON Buffer" })
+vim.keymap.set("n", "<leader>fJ", new_scratch("js"), { desc = "New JavaScript Buffer" })
 
 vim.keymap.set("n", "<A-/>", function()
   require("util.ast_search").prompt()
