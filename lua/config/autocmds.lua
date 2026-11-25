@@ -181,3 +181,45 @@ do
     end
   end
 end
+
+-- native MCursor links to CurSearch by default, indistinguishable from search hl.
+-- Themes don't define it yet, and hot-reload clears highlights, hence ColorScheme.
+if vim.fn.has("nvim-0.13") == 1 then
+  ---@param color integer
+  ---@param factor number 0..1, share of the original brightness kept
+  local function darken(color, factor)
+    local result = 0
+    for shift = 0, 16, 8 do
+      local channel = math.floor(color / 2 ^ shift) % 0x100
+      result = result + math.floor(channel * factor + 0.5) * 2 ^ shift
+    end
+    return result
+  end
+  -- theme's orange (Constant in most themes), toned down so it differs from CurSearch.
+  -- Not based on Normal.bg: transparency clears it.
+  local function set_mcursor_hl()
+    local accent = vim.api.nvim_get_hl(0, { name = "Constant", link = false }).fg
+    if not accent then
+      return vim.api.nvim_set_hl(0, "MCursor", { link = "Cursor" })
+    end
+    vim.api.nvim_set_hl(0, "MCursor", { fg = 0x000000, bg = darken(accent, 0.8) })
+  end
+  set_mcursor_hl()
+  vim.api.nvim_create_autocmd("ColorScheme", {
+    desc = "Make multicursors distinct from search matches",
+    callback = set_mcursor_hl,
+  })
+
+  -- in tmux, terminal-drawn cursors (kitty multiple-cursors protocol) come out
+  -- plain white, ignoring MCursor colors. Keep nvim's own highlight there.
+  -- NOTE: vim._core.mcursor is private API, detect() calls M.tty_cursors(true)
+  -- asynchronously on the terminal's reply, hence the override.
+  if vim.env.TMUX then
+    local mcursor = require("vim._core.mcursor")
+    local tty_cursors = mcursor.tty_cursors
+    mcursor.tty_cursors = function()
+      tty_cursors(false)
+    end
+    tty_cursors(false)
+  end
+end

@@ -43,6 +43,37 @@ vim.keymap.set("n", "q:", "q:", { noremap = true, desc = "Command history window
 vim.keymap.set("n", "q/", "q/", { noremap = true, desc = "Search history window" })
 vim.keymap.set("n", "q?", "q?", { noremap = true, desc = "Search history window (backward)" })
 
+-- native multicursor: builtin <C-l> clear is taken by tmux navigation
+if vim.fn.has("nvim-0.13") == 1 then
+  local mc_ns = vim.api.nvim_create_namespace("nvim.multicursor")
+  langmap.set_keymap("n", "ql", function()
+    vim.api.nvim_buf_clear_namespace(0, mc_ns, 0, -1)
+  end, { desc = "Clear multicursors" })
+  -- q is <Nop>'d, so builtin q= needs a passthrough like q:
+  langmap.set_keymap("n", "q=", "q=", { noremap = true, desc = "Toggle multicursor follow" })
+  -- zq is a finger twister, and search motions are the most common use
+  langmap.set_keymap({ "n", "x" }, "q*", "zq*", { noremap = true, desc = "Cursor at each word match" })
+  langmap.set_keymap({ "n", "x" }, "qn", "zqn", { noremap = true, desc = "Cursor at each search match" })
+
+  -- FIXME: temporary workaround for https://github.com/neovim/neovim/issues/42850
+  -- 0.13 drops the modifier when 'langmap' translates a multibyte key, so
+  -- <C-ц> mappings never fire. Feed the latin chord instead (<C-ц> -> <C-w>).
+  -- Remove once the issue is fixed.
+  vim.on_key(function(_, typed)
+    -- terminal mode: leave chords for the program in it
+    if typed == "" or vim.fn.mode() == "t" then
+      return
+    end
+    local mods, char = vim.fn.keytrans(typed):match("^<(%a%-[%a%-]*)(.+)>$")
+    local latin = char and langmap.to_latin(char)
+    if not latin then
+      return
+    end
+    vim.api.nvim_feedkeys(vim.keycode("<" .. mods .. latin .. ">"), "mi", false)
+    return ""
+  end, vim.api.nvim_create_namespace("langmap_chord_workaround"))
+end
+
 langmap.set_keymap("i", "<C-d>", "<Delete>", { desc = "Delete forward" })
 langmap.set_keymap("i", "<C-s>", "<C-o>dw", { desc = "Delete forward word" })
 vim.keymap.set("i", langmap.get("<C-w>"), "<C-w>")

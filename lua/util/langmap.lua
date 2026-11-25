@@ -1,14 +1,15 @@
 local M = {}
 
--- cache of latin -> langmapped char lookup, rebuilt when 'langmap' changes
-local cache = { source = nil, lookup = {} }
+-- cache of latin <-> langmapped char lookups, rebuilt when 'langmap' changes
+local cache = { source = nil, lookup = {}, reverse = {} }
 
 --- Build latin -> langmapped lookup from 'langmap' option.
 ---
 --- Only pair form is supported ("ЙQ,йq"), commas between pairs are optional
 --- (same as in nvim itself), backslash escapes the next char.
 ---@param langmap string
----@return table<string, string>
+---@return table<string, string> lookup latin -> langmapped
+---@return table<string, string> reverse langmapped -> latin
 local function parse_langmap(langmap)
   local chars = {}
   local escaped = false
@@ -25,20 +26,26 @@ local function parse_langmap(langmap)
     end
   end
   -- NOTE: escaped commas get here as regular chars, so plain char pairing is fine
-  local lookup = {}
+  local lookup, reverse = {}, {}
   for i = 1, #chars - 1, 2 do
     local from, to = chars[i], chars[i + 1]
     lookup[to] = lookup[to] or from
+    reverse[from] = reverse[from] or to
   end
-  return lookup
+  return lookup, reverse
+end
+
+local function refresh_cache()
+  local langmap = vim.o.langmap
+  if cache.source ~= langmap then
+    local lookup, reverse = parse_langmap(langmap)
+    cache = { source = langmap, lookup = lookup, reverse = reverse }
+  end
 end
 
 ---@return table<string, string>
 local function get_lookup()
-  local langmap = vim.o.langmap
-  if cache.source ~= langmap then
-    cache = { source = langmap, lookup = parse_langmap(langmap) }
-  end
+  refresh_cache()
   return cache.lookup
 end
 
@@ -126,6 +133,14 @@ function M.get(lhs)
     keys[i] = remap_key(key, lookup)
   end
   return table.concat(keys)
+end
+
+--- Get latin char for a langmapped one (`ц` -> `w`), nil if it isn't in 'langmap'.
+---@param char string
+---@return string?
+function M.to_latin(char)
+  refresh_cache()
+  return cache.reverse[char]
 end
 
 --- Set a keybinding, duplicating LHS for langmapped version as well.

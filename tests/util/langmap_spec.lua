@@ -85,6 +85,19 @@ describe("langmap", function()
     end)
   end)
 
+  describe("to_latin", function()
+    it("maps langmapped chars back to latin", function()
+      assert.are.equal("w", langmap.to_latin("ц"))
+      assert.are.equal("Q", langmap.to_latin("Й"))
+      assert.are.equal(";", langmap.to_latin("ж"))
+    end)
+
+    it("returns nil for chars missing from langmap", function()
+      assert.is_nil(langmap.to_latin("w"))
+      assert.is_nil(langmap.to_latin("1"))
+    end)
+  end)
+
   describe("set_keymap", function()
     local buf
 
