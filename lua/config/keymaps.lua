@@ -46,14 +46,14 @@ vim.keymap.set("n", "q?", "q?", { noremap = true, desc = "Search history window 
 -- native multicursor: builtin <C-l> clear is taken by tmux navigation
 if vim.fn.has("nvim-0.13") == 1 then
   local mc_ns = vim.api.nvim_create_namespace("nvim.multicursor")
-  langmap.set_keymap("n", "ql", function()
+  vim.keymap.set("n", "ql", function()
     vim.api.nvim_buf_clear_namespace(0, mc_ns, 0, -1)
   end, { desc = "Clear multicursors" })
   -- q is <Nop>'d, so builtin q= needs a passthrough like q:
-  langmap.set_keymap("n", "q=", "q=", { noremap = true, desc = "Toggle multicursor follow" })
+  vim.keymap.set("n", "q=", "q=", { noremap = true, desc = "Toggle multicursor follow" })
   -- zq is a finger twister, and search motions are the most common use
-  langmap.set_keymap({ "n", "x" }, "q*", "zq*", { noremap = true, desc = "Cursor at each word match" })
-  langmap.set_keymap({ "n", "x" }, "qn", "zqn", { noremap = true, desc = "Cursor at each search match" })
+  vim.keymap.set({ "n", "x" }, "q*", "zq*", { noremap = true, desc = "Cursor at each word match" })
+  vim.keymap.set({ "n", "x" }, "qn", "zqn", { noremap = true, desc = "Cursor at each search match" })
 
   -- FIXME: temporary workaround for https://github.com/neovim/neovim/issues/42850
   -- 0.13 drops the modifier when 'langmap' translates a multibyte key, so

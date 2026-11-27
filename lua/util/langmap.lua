@@ -1,5 +1,8 @@
 local M = {}
 
+-- TODO: this module won't be needed in nvim 0.13, because nvim would handle it
+-- natively after https://github.com/neovim/neovim/pull/40148
+
 -- cache of latin <-> langmapped char lookups, rebuilt when 'langmap' changes
 local cache = { source = nil, lookup = {}, reverse = {} }
 
@@ -156,6 +159,10 @@ end
 function M.set_keymap(modes, lhs, rhs, opts)
   vim.keymap.set(modes, lhs, rhs, opts)
 
+  -- nvim already handles langmap correctly, no need to do anything here
+  if vim.fn.has("nvim-0.13") then
+    return
+  end
   local remapped_lhs = M.get(lhs)
   if remapped_lhs ~= lhs then
     vim.keymap.set(modes, remapped_lhs, rhs, opts and duplicate_spec(opts, lhs))
